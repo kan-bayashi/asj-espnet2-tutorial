@@ -32,8 +32,7 @@ Github: [@kan-bayashi](https://github.com/kan-bayashi)
 
 ## はじめに
 
-本記事は、音響学会誌で刊行予定の解説記事「End-to-End音声処理の概要とESPnet2を用いたその実践」の付録です。
-上記の解説論文と合わせて読んでいただけるとより理解が深まると思います。
+本記事は、音響学会誌で刊行予定の解説記事「End-to-End音声処理の概要とESPnet2を用いたその実践」の付録です。上記の解説論文と合わせて読んでいただけるとより理解が深まると思います。
 
 ## 本記事で出来るようになること
 
@@ -61,7 +60,7 @@ ESPnet2は、ESPnetの弱点を克服するべく開発された次世代の音�
 - **On-the-Fly**: 特徴量抽出やテキストの前処理などがモデル部に統合。学習時や推論時に逐次的に実行されるように。
 - **Scalable**: CPUメモリの利用の最適化を行い、数万時間オーダーの超巨大データセットを用いた学習が可能に。さらに、マルチノードマルチGPU方式の分散学習をサポート。
 
-2020年10月時点の最新バージョンである0.9.3のESPnet2では、音声認識(ASR)、テキスト音声合成(TTS)、そして、音声強調(SE)のタスクがサポートされています。今後は、さらなるタスク(例: 音声翻訳、音声変換)が[サポートされる予定](https://github.com/espnet/espnet/issues/1795)です。以下では、ASRとTTSを中心に、その使い方を簡単に解説します。
+2020年10月時点の最新バージョンv.0.9.3では、音声認識(ASR)、テキスト音声合成(TTS)、そして、音声強調(SE)のタスクがサポートされています。今後は、さらなるタスク(例: 音声翻訳、音声変換)が[サポートされる予定](https://github.com/espnet/espnet/issues/1795)です。以下では、ASRとTTSを中心に、その使い方を簡単に解説します。
 
 ## 環境構築
 
@@ -78,7 +77,7 @@ ESPnetは、主にUbuntuやCentOSなどのLinux環境での利用を想定して
 まず、必要なリポジトリをGithubより取得します。
 ```bash
 $ git clone https://github.com/kaldi/kaldi.git
-$ git clone https://github.com/espnet/espnet.git -b v.0.9.3
+$ git clone https://github.com/espnet/espnet.git
 ```
 
 `espnet/tools`に移動します。
@@ -141,15 +140,17 @@ wav, feats, feats_denorm, *_ = text2speech(
 	"あらゆる現実を、全て自分の方へねじ曲げたのだ。"
 )
 ```
-ここで、`wav`、`feats`、及び`feats_denorm`はそれぞれ生成された波形、統計量で正規化された音響特徴量、及び逆正規化の音響特徴量を表します。デフォルトでは、音響特徴量から波形の変換はGriffin-Limによって行われますが、[kan-bayashi/ParllelWaveGAN](https://github.com/kan-bayashi/ParallelWaveGAN)などのニューラルボコーダと組み合わせることも可能です。
+ここで、`wav`、`feats`、及び`feats_denorm`はそれぞれ生成された波形、統計量で正規化された音響特徴量、及び逆正規化の音響特徴量を表します。デフォルトでは、音響特徴量から波形の変換はGriffin-Limによって行われますが、[ParllelWaveGAN](https://github.com/kan-bayashi/ParallelWaveGAN)などのニューラルボコーダと組み合わせることも可能です。
 
 また、こちらの例はGoogle Colabを利用したデモも公開しておりますので、ブラウザ上で簡単に試すことができます。興味がある方は[コチラ](https://colab.research.google.com/github/espnet/notebook/blob/master/espnet2_tts_realtime_demo.ipynb)からアクセスしてみてください。以下のような音声を自由に生成できます。
 
 <div align="center">
 <audio controls="" ><source src="audios/ja_sample.wav"/></audio>
+<br>
 <audio controls="" ><source src="audios/en_sample.wav"/></audio>
+<br>
 <audio controls="" ><source src="audios/zh_sample.wav"/></audio>
-<div>
+</div>
 
 ASRモデルの推論ついても、ほぼ同一の手順で実行が可能です。以下では、[Librispeechコーパス](http://www.openslr.org/12)で学習されたASRモデル[Joint CTC-Attention Transformer](https://arxiv.org/abs/1909.06317)を利用した推論を実行するPythonコードの例を示します。
 ```python
@@ -529,8 +530,7 @@ $ ./run.sh --stage 10 \
 ```bash
 $ ./run.sh --stage 10 \
   --asr_config conf/train_asr_rnn.yaml \
-  --asr_args "--batch_size 64" \
-  --asr_args "--optim_conf lr=0.1"
+  --asr_args "--batch_size 64 --optim_conf lr=0.1"
 ```
 `--asr_args`オプションを指定した場合、自動的に保存されるディレクトリの名前も指定したオプションに応じて更新されます。そのため、モデルが上書きされる心配をする必要はありません。また、これにより、`for`ループを利用した簡易的なハイパーパラメータの探索も可能です。
 
@@ -538,8 +538,7 @@ $ ./run.sh --stage 10 \
 ```bash
 $ ./run.sh --stage 10 \
   --asr_config conf/train_asr_rnn.yaml \
-  --asr_args "--batch_size 64" \
-  --asr_args "--optim_conf lr=0.1" \
+  --asr_args "--batch_size 64 --optim_conf lr=0.1" \
   --asr_tag "train_rnn_batchs_size_64_lr_0.1"
 ```
 
@@ -740,9 +739,9 @@ $ ./run.sh --stage 2 --stop-stage 2
 ```
 ここで、音声はGriffin-Limによって生成され、継続長及びフォーカスレートは生成時のAttentionから計算される指標です。
 
-ユーザーは、生成された特徴量ファイルを利用することで、任意のニューラルボコーダと組み合わせることが可能できます。より詳細に関しては、[kan-bayashi/ParallelWaveGAN](https://github.com/kan-bayashi/ParallelWaveGAN)を参照してください。
+ユーザーは、生成された特徴量ファイルを利用することで、任意のニューラルボコーダと組み合わせることが可能できます。より詳細に関しては、[ParallelWaveGAN](https://github.com/kan-bayashi/ParallelWaveGAN)を参照してください。
 
-また、生成時のAttention(`att_ws/*.png`)や生成打ち切り確率のプロット(`probs/*.png`)を観察することで、生成がうまく行っているかを分析することも可能である。以下に二つのプロットの例を示します。
+また、生成時のAttention(`att_ws/*.png`)や生成打ち切り確率のプロット(`probs/*.png`)を観察することで、生成がうまく行っているかを分析が可能です。以下に二つのプロットの例を示します。
 
 <div align="center">
 <img src=figs/tts_attention_ex.png width=75%>
@@ -820,3 +819,12 @@ TTSレシピでのファインチューニングを実施する例は[`How to fi
 本記事では、E2E音声処理ツールキットESPnet2を使った実践について概説しました。
 ESPnetは日本人が中心となって開発を進めており、常に熱意ある開発者を募集しています。
 興味のある方は、気軽に開発メンバーに連絡、もしくは、[Github](https://github.com/espnet/espnet)上での議論に参加してください！
+
+## 参考リンク
+
+- [ESPnet](https://github.com/espnet/espnet)
+- [ESPnet modle zoo](https://github.com/espnet/espnet_model_zoo)
+- [ESPnet document](https://espnet.github.io/espnet/)
+- [ESPnet2 tutorial](https://espnet.github.io/espnet/espnet2_tutorial.html)
+- [ESPnet2 TEMPLATE](https://github.com/espnet/espnet/blob/master/egs2/TEMPLATE/README.md)
+- [ESPnet2 TTS TEMPLATE](https://github.com/espnet/espnet/blob/master/egs2/TEMPLATE/tts1/README.md)
