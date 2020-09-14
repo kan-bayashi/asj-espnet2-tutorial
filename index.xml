@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>ESPnet2で始めるEnd-to−End音声処理</title>
+    <link>https://kan-bayashi.github.io/asj-espnet2-tutorial/</link>
+    <description>Recent content on ESPnet2で始めるEnd-to−End音声処理</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <lastBuildDate>Tue, 15 Sep 2020 00:00:00 +0900</lastBuildDate>
+    
+	<atom:link href="https://kan-bayashi.github.io/asj-espnet2-tutorial/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title></title>
+      <link>https://kan-bayashi.github.io/asj-espnet2-tutorial/</link>
+      <pubDate>Tue, 15 Sep 2020 00:00:00 +0900</pubDate>
+      
+      <guid>https://kan-bayashi.github.io/asj-espnet2-tutorial/</guid>
+      <description>ESPnet2で始めるEnd-to-End音声処理 Author: 林 知樹(Tomoki Hayashi)
+Github: @kan-bayashi
+ 以下の内容はESPnet v.0.9.4の内容に基づきます。
+バージョンの更新により、内容が大きく変化する可能性があります。
+ 目次  はじめに 本記事で出来るようになること ESPnetとは？ ESPnet2とは？ 環境構築 事前学習モデルを利用した推論 レシピを利用したモデル構築  レシピの構造 データディレクトリの構造 ASRレシピの流れ ASRレシピの実行 TTSレシピの流れ TTSレシピの実行 より実践的な利用に向けて   むすび  はじめに 本記事は、音響学会誌で刊行予定の解説文論「End-to-End音声処理の概要とESPnet2を用いたその実践」の付録です。上記と合わせて読んでいただけるとより理解が深まると思います。
+本記事で出来るようになること はじめに、本記事を読むことで出来るようになることを上げておきます。
+ ESPnet2で事前学習された音声認識モデル / テキスト音声合成モデルを使って推論すること ESPnet2で提供されているレシピを使って音声認識モデル / テキスト音声合成モデルを学習すること  本記事ではEnd-to-End音声処理のアルゴリズムの詳しい説明は行わず、ツールの利用方法などの実践的な部分に焦点を当てます。
+ESPnetとは？ ESPnetとは、End-to-End(E2E)型のモデルの研究を加速させるべく開発された、E2E音声処理のためのオープンソースツールキットです。ライセンスはApache 2.0で、商用利用も可能です。
+ESPnetは、E2E型モデルを記述したPythonライブラリ部と、シェルスクリプトで記述されたレシピ部で構成されています。Pythonライブラリ部は、Define-by-Run方式のChainer及びPyTorchをニューラルネットワークエンジンとして利用しており、柔軟なモデルの記述・拡張を実現しています。レシピ部は、音声認識ツールキットKaldiの方式に基づいており、再現実験を行うために必要な全ての手順が一括で実行できるようになっています。
+ESPnet2とは？ ESPnet2は、ESPnetの弱点を克服するべく開発された次世代の音声処理ツールキットです。コード自体はESPnetのリポジトリに統合されています。基本的な構成はESPnetと同様ですが、利便性と拡張性を高めるため以下のような拡張が行われています。
+ Task-Design: FairSeqの方式を参考に、ユーザーが任意の新しい音声処理タスク(例: 音声強調、音声変換)を定義できるように。 Chainer-Free: Chainerの開発終了に伴い、Chainerに依存していた部分を改修。 Kaldi-Free: Kaldiに依存していた特徴量抽出部がPythonライブラリ内に統合。これにより、多くのユーザーが躓きやすいKaldiのコンパイルが不要に。 On-the-Fly: 特徴量抽出やテキストの前処理などがモデル部に統合。学習時や推論時に逐次的に実行されるように。 Scalable: CPUメモリの利用の最適化を行い、数万時間オーダーの超巨大データセットを用いた学習が可能に。さらに、マルチノードマルチGPU方式の分散学習をサポート。  2020年10月時点の最新バージョンv.0.9.4では、音声認識(ASR)、テキスト音声合成(TTS)、そして、音声強調(SE)のタスクがサポートされています。今後は、さらなるタスク(例: 音声翻訳、音声変換)がサポートされる予定です。以下では、ASRとTTSを中心に、その使い方を簡単に解説します。
+環境構築 ESPnetは、主にUbuntuやCentOSなどのLinux環境での利用を想定しており、必要動作要件は以下の通りです。
+ Python 3.</description>
+    </item>
+    
+  </channel>
+</rss>

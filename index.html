@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ja"><meta charset="utf-8" />
+
+  <title>ESPnet2で始めるEnd-to−End音声処理</title>
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="https://kan-bayashi.github.io/asj-espnet2-tutorial/css/latex.css" />
+<link rel="stylesheet" href="https://kan-bayashi.github.io/asj-espnet2-tutorial/css/main.css" />
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<meta name="generator" content="Hugo 0.70.0" /><body>
+
+
+
+
+
+
+<div class="intro-header"></div>
+<div id="content">
+  <div class="container" role="main">
+    <article class="article" class="blog-post">
+      <div class="postmeta">
+        <span class="meta-post">
+  <i class="fa fa-calendar-alt"></i>Sep 15, 2020
+  
+</span>
+      </div>
+      <br>
+      
+    <h1 id="espnet2で始めるend-to-end音声処理">ESPnet2で始めるEnd-to-End音声処理</h1>
+<p>Author: 林 知樹(Tomoki Hayashi)</p>
+<p>Github: <a href="https://github.com/kan-bayashi">@kan-bayashi</a></p>
+<blockquote>
+<p>以下の内容はESPnet v.0.9.4の内容に基づきます。<br>
+バージョンの更新により、内容が大きく変化する可能性があります。</p>
+</blockquote>
+<h2 id="目次">目次</h2>
+<ul>
+<li><a href="#%E3%81%AF%E3%81%98%E3%82%81%E3%81%AB">はじめに</a></li>
+<li><a href="#%E6%9C%AC%E8%A8%98%E4%BA%8B%E3%81%A7%E5%87%BA%E6%9D%A5%E3%82%8B%E3%82%88%E3%81%86%E3%81%AB%E3%81%AA%E3%82%8B%E3%81%93%E3%81%A8">本記事で出来るようになること</a></li>
+<li><a href="#espnet%E3%81%A8%E3%81%AF">ESPnetとは？</a></li>
+<li><a href="#espnet2%E3%81%A8%E3%81%AF">ESPnet2とは？</a></li>
+<li><a href="#%E7%92%B0%E5%A2%83%E6%A7%8B%E7%AF%89">環境構築</a></li>
+<li><a href="#%E4%BA%8B%E5%89%8D%E5%AD%A6%E7%BF%92%E3%83%A2%E3%83%87%E3%83%AB%E3%82%92%E5%88%A9%E7%94%A8%E3%81%97%E3%81%9F%E6%8E%A8%E8%AB%96">事前学習モデルを利用した推論</a></li>
+<li><a href="#%E3%83%AC%E3%82%B7%E3%83%94%E3%82%92%E5%88%A9%E7%94%A8%E3%81%97%E3%81%9F%E3%83%A2%E3%83%87%E3%83%AB%E6%A7%8B%E7%AF%89">レシピを利用したモデル構築</a>
+<ul>
+<li><a href="#%E3%83%AC%E3%82%B7%E3%83%94%E3%81%AE%E6%A7%8B%E9%80%A0">レシピの構造</a></li>
+<li><a href="#%E3%83%87%E3%83%BC%E3%82%BF%E3%83%87%E3%82%A3%E3%83%AC%E3%82%AF%E3%83%88%E3%83%AA%E3%81%AE%E6%A7%8B%E9%80%A0">データディレクトリの構造</a></li>
+<li><a href="#asr%E3%83%AC%E3%82%B7%E3%83%94%E3%81%AE%E6%B5%81%E3%82%8C">ASRレシピの流れ</a></li>
+<li><a href="#asr%E3%83%AC%E3%82%B7%E3%83%94%E3%81%AE%E5%AE%9F%E8%A1%8C">ASRレシピの実行</a></li>
+<li><a href="#tts%E3%83%AC%E3%82%B7%E3%83%94%E3%81%AE%E6%B5%81%E3%82%8C">TTSレシピの流れ</a></li>
+<li><a href="#tts%E3%83%AC%E3%82%B7%E3%83%94%E3%81%AE%E5%AE%9F%E8%A1%8C">TTSレシピの実行</a></li>
+<li><a href="#%E3%82%88%E3%82%8A%E5%AE%9F%E8%B7%B5%E7%9A%84%E3%81%AA%E5%88%A9%E7%94%A8%E3%81%AB%E5%90%91%E3%81%91%E3%81%A6">より実践的な利用に向けて</a></li>
+</ul>
+</li>
+<li><a href="#%E3%82%80%E3%81%99%E3%81%B3">むすび</a></li>
+</ul>
+<h2 id="はじめに">はじめに</h2>
+<p>本記事は、音響学会誌で刊行予定の解説文論「End-to-End音声処理の概要とESPnet2を用いたその実践」の付録です。上記と合わせて読んでいただけるとより理解が深まると思います。</p>
+<h2 id="本記事で出来るようになること">本記事で出来るようになること</h2>
+<p>はじめに、本記事を読むことで出来るようになることを上げておきます。</p>
+<ul>
+<li>ESPnet2で事前学習された音声認識モデル / テキスト音声合成モデルを使って推論すること</li>
+<li>ESPnet2で提供されているレシピを使って音声認識モデル / テキスト音声合成モデルを学習すること</li>
+</ul>
+<p>本記事ではEnd-to-End音声処理のアルゴリズムの詳しい説明は行わず、ツールの利用方法などの実践的な部分に焦点を当てます。</p>
+<h2 id="espnetとは">ESPnetとは？</h2>
+<p>ESPnetとは、End-to-End(E2E)型のモデルの研究を加速させるべく開発された、E2E音声処理のためのオープンソースツールキットです。ライセンスはApache 2.0で、商用利用も可能です。</p>
+<p>ESPnetは、E2E型モデルを記述したPythonライブラリ部と、シェルスクリプトで記述されたレシピ部で構成されています。Pythonライブラリ部は、Define-by-Run方式の<a href="https://github.com/chainer/chainer">Chainer</a>及び<a href="https://github.com/pytorch/pytorch">PyTorch</a>をニューラルネットワークエンジンとして利用しており、柔軟なモデルの記述・拡張を実現しています。レシピ部は、音声認識ツールキット<a href="https://github.com/kaldi-asr/kald">Kaldi</a>の方式に基づいており、再現実験を行うために必要な全ての手順が一括で実行できるようになっています。</p>
+<h2 id="espnet2とは">ESPnet2とは？</h2>
+<p>ESPnet2は、ESPnetの弱点を克服するべく開発された次世代の音声処理ツールキットです。コード自体はESPnetのリポジトリに統合されています。基本的な構成はESPnetと同様ですが、利便性と拡張性を高めるため以下のような拡張が行われています。</p>
+<ul>
+<li><strong>Task-Design</strong>: <a href="https://github.com/pytorch/fairseq">FairSeq</a>の方式を参考に、ユーザーが任意の新しい音声処理タスク(例: 音声強調、音声変換)を定義できるように。</li>
+<li><strong>Chainer-Free</strong>: <a href="https://github.com/chainer/chainer">Chainer</a>の開発終了に伴い、<a href="https://github.com/chainer/chainer">Chainer</a>に依存していた部分を改修。</li>
+<li><strong>Kaldi-Free</strong>: <a href="https://github.com/kaldi-asr/kaldi">Kaldi</a>に依存していた特徴量抽出部がPythonライブラリ内に統合。これにより、多くのユーザーが躓きやすいKaldiのコンパイルが不要に。</li>
+<li><strong>On-the-Fly</strong>: 特徴量抽出やテキストの前処理などがモデル部に統合。学習時や推論時に逐次的に実行されるように。</li>
+<li><strong>Scalable</strong>: CPUメモリの利用の最適化を行い、数万時間オーダーの超巨大データセットを用いた学習が可能に。さらに、マルチノードマルチGPU方式の分散学習をサポート。</li>
+</ul>
+<p>2020年10月時点の最新バージョンv.0.9.4では、音声認識(ASR)、テキスト音声合成(TTS)、そして、音声強調(SE)のタスクがサポートされています。今後は、さらなるタスク(例: 音声翻訳、音声変換)が<a href="https://github.com/espnet/espnet/issues/1795">サポートされる予定</a>です。以下では、ASRとTTSを中心に、その使い方を簡単に解説します。</p>
+<h2 id="環境構築">環境構築</h2>
+<p>ESPnetは、主にUbuntuやCentOSなどのLinux環境での利用を想定しており、必要動作要件は以下の通りです。</p>
+<ul>
+<li>Python 3.6.1+</li>
+<li>GCC 4.9+</li>
+<li>CUDA 10.0+</li>
+<li>CuDNN 7+</li>
+<li>NCCL 2.0+(マルチGPU利用の場合のみ)</li>
+</ul>
+<p>以下では、上記の動作要件を満たしたUbuntu 18.04におけるターミナル上での環境構築手順を示します。</p>
+<p>まず、必要なリポジトリをGithubより取得します。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ git clone https://github.com/kaldi-asr/kaldi.git
+$ git clone https://github.com/espnet/espnet.git -b v.0.9.4
+</code></pre></div><p><code>espnet/tools</code>に移動します。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cd espnet/tools
+</code></pre></div><p>Kaldiへのシンボリックリンクを作成します。この際、Kaldiはコンパイルする必要はありません。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ln -s <span style="color:#66d9ef">$(</span>pwd<span style="color:#66d9ef">)</span>/../../kaldi .
+</code></pre></div><p>CUDAに関する環境変数を設定します。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ . ./setup_cuda_env.sh /usr/local/cuda
+</code></pre></div><p>CUDAのインストール場所が<code>/usr/local/cuda</code>ではない場合は適宜変更してください。</p>
+<p>ここでは簡単のため、<a href="https://www.anaconda.com/">Anaconda</a>を利用したPython環境を<code>venv/</code>以下に作成します。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ./setup_anaconda.sh venv
+</code></pre></div><p>既存のPython環境を利用したインストールも可能です。詳しくは<a href="https://espnet.github.io/espnet/installation.html">インストールマニュアル</a>を参照してください。</p>
+<p>作成したPython環境内へ必要なライブラリのインストールを行います。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ make
+</code></pre></div><p>日本語TTSを利用したい場合は、追加で<a href="https://github.com/r9y9/pyopenjtalk">PyOpenJTalk</a>のインストールを行います。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ make pyopenjtalk.done
+</code></pre></div><p>以上で環境構築は完了です。</p>
+<p>以後の処理では、<code>espnet/tools/venv</code>に作成されたPython環境を利用した処理が前提となります。そのため、この環境に新たにPythonライブラリ等を追加したい場合には、追加のインストールの前に環境のアクティベートを行う必要があることに注意してください。作成した環境をアクティベートするには<code>espnet/tools</code>内の<code>activate_python.sh</code>をカレントシェルで読み込みます。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ . ./activate_python.sh
+</code></pre></div><h2 id="事前学習モデルを利用した推論">事前学習モデルを利用した推論</h2>
+<p>ESPnet2では、研究データ共有リポジトリである<a href="https://zenodo.org/">Zenodo</a>と連携していて、様々な事前学習モデルを簡単に試すことができます。また、試すだけではなく、Zenodoへと登録を行うことで、任意のユーザーが事前学習モデルをアップロードすることも可能です。</p>
+<p>以下では、<a href="https://sites.google.com/site/shinnosuketakamichi/publication/jsut">JSUTコーパス</a>を用いて事前学習されたTTSモデル<a href="https://arxiv.org/abs/2006.04558">FastSpeech2</a>による推論を実行するPythonコードの例を示します。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">from</span> espnet_model_zoo.downloader <span style="color:#f92672">import</span> ModelDownloader
+<span style="color:#f92672">from</span> espnet2.bin.tts_inference <span style="color:#f92672">import</span> Text2Speech
+
+<span style="color:#75715e"># Create E2E-TTS model instance</span>
+d <span style="color:#f92672">=</span> ModelDownloader()
+text2speech <span style="color:#f92672">=</span> Speech2Text(
+    <span style="color:#75715e"># Specify the tag</span>
+    d<span style="color:#f92672">.</span>download_and_unpack(<span style="color:#e6db74">&#34;kan-bayashi/jsut_fastspeech2&#34;</span>)
+)
+
+<span style="color:#75715e"># Synthesis with a given text</span>
+wav, feats, feats_denorm, <span style="color:#f92672">*</span>_ <span style="color:#f92672">=</span> text2speech(
+	<span style="color:#e6db74">&#34;あらゆる現実を、全て自分の方へねじ曲げたのだ。&#34;</span>
+)
+</code></pre></div><p>ここで、<code>wav</code>、<code>feats</code>、及び<code>feats_denorm</code>はそれぞれ生成された波形、統計量で正規化された音響特徴量、及び逆正規化の音響特徴量を表します。デフォルトでは、音響特徴量から波形の変換はGriffin-Limによって行われますが、<a href="https://github.com/kan-bayashi/ParallelWaveGAN">ParllelWaveGAN</a>などのニューラルボコーダと組み合わせることも可能です。</p>
+<p>また、こちらの例はGoogle Colabを利用したデモも公開しておりますので、ブラウザ上で簡単に試すことができます。興味がある方は<a href="https://colab.research.google.com/github/espnet/notebook/blob/master/espnet2_tts_realtime_demo.ipynb">コチラ</a>からアクセスしてみてください。以下のような音声を自由に生成できます。</p>
+<div align="center">
+<audio controls="" ><source src="audios/ja_sample.wav"/></audio>
+<br>
+<audio controls="" ><source src="audios/en_sample.wav"/></audio>
+<br>
+<audio controls="" ><source src="audios/zh_sample.wav"/></audio>
+</div>
+<p>ASRモデルの推論についても、ほぼ同一の手順で実行が可能です。以下では、<a href="http://www.openslr.org/12">Librispeechコーパス</a>で学習されたASRモデル<a href="https://arxiv.org/abs/1909.06317">Joint CTC-Attention Transformer</a>を利用した推論を実行するPythonコードの例を示します。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">import</span> soundfile <span style="color:#f92672">as</span> sf
+<span style="color:#f92672">from</span> espnet_model_zoo.downloader <span style="color:#f92672">import</span> ModelDownloader
+<span style="color:#f92672">from</span> espnet2.bin.asr_inference <span style="color:#f92672">import</span> Speech2Text
+
+<span style="color:#75715e"># Create E2E-ASR model instance</span>
+d <span style="color:#f92672">=</span> ModelDownloader()
+speech2text <span style="color:#f92672">=</span> Speech2Text(
+    <span style="color:#75715e"># Specify task and corpus</span>
+    <span style="color:#f92672">**</span>d<span style="color:#f92672">.</span>download_and_unpack(task<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;asr&#34;</span>, corpus<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;librispeech&#34;</span>)
+)
+
+<span style="color:#75715e"># Recognition with a given audio</span>
+wav, fs <span style="color:#f92672">=</span> sf<span style="color:#f92672">.</span>read(<span style="color:#e6db74">&#34;/path/to/sample.wav&#34;</span>)
+text, token, <span style="color:#f92672">*</span>_ <span style="color:#f92672">=</span> speech2text(wav)[<span style="color:#ae81ff">0</span>]
+</code></pre></div><p>ここで、<code>text</code>と<code>token</code>はそれぞれ認識結果のテキストとトークンに分割された認識結果を表します。</p>
+<p>上記の例からわかるように、ユーザーはわずか数行のコードで最新鋭のモデルを使った推論を実行することができます。これにより、デモシステムへの組み込みや、ベースラインとしての利用も簡単に行うことができます。より詳細な事前学習モデルの利用方法や公開されている事前学習モデルの一覧は、<a href="https://github.com/espnet/espnet_model_zoo">ESPnet Model Zoo</a>を参照してください。</p>
+<h2 id="レシピを利用したモデル構築">レシピを利用したモデル構築</h2>
+<p>レシピとは、前処理、学習、評価といった実験に必要な全ての手順が含まれたシェルスクリプトのことを指します。ここでは、ASR及びTTSレシピに焦点を当て、その構造と使い方を概説します。</p>
+<h3 id="レシピの構造">レシピの構造</h3>
+<p>ESPnet2では、全レシピが共通のテンプレートに基づいており、<code>espnet/egs2</code>内<code>&lt;corpus_name&gt;/&lt;task&gt;</code>の形式でまとめられています。例として、JSUTコーパスのASR及びTTSレシピのディレクトリ構造を以下に示します。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># ASR recipe                       # TTS recipe</span>
+egs2/jsut/asr1/                    egs2/jsut/tts1/
+ - conf/                            - conf/
+ - scripts/                         - scripts/
+ - pyscripts/                       - pyscripts/
+ - steps/                           - steps/
+ - utils/                           - utils/
+ - local/                           - local/
+ - db.sh                            - db.sh
+ - path.sh                          - path.sh
+ - cmd.sh                           - cmd.sh
+ - run.sh                           - run.sh
+ - asr.sh                           - tts.sh
+</code></pre></div><p>上記からわかるように、ASRとTTSレシピの間でディレクトリ構造は共通となっており、テンプレートスクリプトである<code>asr.sh</code>と<code>tts.sh</code>のみが異なります。</p>
+<p>ここでは、いくつかの重要なファイルについて概説します。その他のファイルに関しては、<a href="https://espnet.github.io/espnet/espnet2_tutorial.html">ESPnet2 tutorial</a>を参照してください。</p>
+<ul>
+<li><strong><code>cmd.sh</code></strong>: レシピ内の各処理をどのように実行するかを設定するファイル。テンプレートスクリプトによって呼び出されます。ファイル内の<code>cmd_backend</code>を変更することで、レシピ内の各処理を<a href="https://www.schedmd.com/">Slurm</a>などのジョブスケジューラを通して実行することが可能になります。デフォルトでは<code>cmd_backend=local</code>となっており、レシピを実行したローカルマシンで処理を行います。ジョブスケジューラを利用しない場合は編集せずにそのまま利用します。ジョブスケジューラとの連携の詳細に関しては、<a href="https://espnet.github.io/espnet/parallelization.html">ジョブスケジューラの利用</a>を参照してください。</li>
+<li><strong><code>path.sh</code></strong>: 環境変数の管理を行うファイル。テンプレートスクリプトによって呼び出される。このファイルを読み込むことで、インストールした各種ツールへのパスが通り、環境構築の際に作成したPython環境がアクティベートされる。レシピの実行の際に設定しておきたい環境変数がある場合は、このファイルに追記を行うと良いです。</li>
+<li><strong><code>db.sh</code></strong>: 各種コーパスのパスを設定するファイル。主に、自動的にダウンロードを行うことができない有償のコーパスを利用したレシピを実行する際に編集する必要があります。</li>
+<li><strong><code>asr.sh</code></strong>(<strong><code>tts.sh</code></strong>): ASR(もしくはTTS)モデル構築のためのテンプレートスクリプト。モデルの構築に必要な複数のステージで構成されたシェルスクリプト。<code>run.sh</code>によって呼び出されます。</li>
+<li><strong><code>local/data.sh</code></strong>: 学習セット、検証セット、及び評価セットに対応するKaldi方式のデータディレクトリ(<a href="#%E3%83%87%E3%83%BC%E3%82%BF%E3%83%87%E3%82%A3%E3%83%AC%E3%82%AF%E3%83%88%E3%83%AA%E3%81%AE%E6%A7%8B%E9%80%A0">データディレクトリの構造</a>を参照)を生成するシェルスクリプト。テンプレートスクリプトによって呼び出されます。レシピごとに固有のスクリプトであり、新しいレシピを追加する際には、基本的にこのスクリプトを作成することが主な作業となります。</li>
+<li><strong><code>conf/</code></strong>: ジョブスケジューラとの連携のための設定ファイル(<code>*.conf</code>)や、ネットワークの学習及び推論のハイパーパラメータ設定ファイル(<code>*.yaml</code>)を含むディレクトリ。このディレクトリ内の設定ファイル(<code>*.yaml</code>)を編集し、それらをテンプレートスクリプトのオプションとして渡すことで様々なネットワークを学習することできるようになります。</li>
+<li><strong><code>run.sh</code></strong>: テンプレートスクリプトのオプションを指定し実行するためのシェルスクリプト。レシピごとに固有のファイル。このファイルを実行することで、レシピを一通り実行することが可能となります。</li>
+</ul>
+<p>このディレクトリ構造は全レシピで共通であり、実行ファイルである<code>run.sh</code>、データ整形のための<code>local/data.sh</code>、そしてネットワークの設定ファイル(<code>*.yaml</code>)の内容のみがレシピごとが異なります。</p>
+<h3 id="データディレクトリの構造">データディレクトリの構造</h3>
+<p>ここでは、<code>local/data.sh</code>によって作成されるKaldi方式のデータディレクトリの構造を概説します。データディレクトリは、学習セット、検証セット、そして評価セットごとに用意されます。複数の評価セットが存在する場合は、各評価セットに対応するデータディレクトリがそれぞれ作成されます。</p>
+<p>各データディレクトリに含まれるファイルは以下の4つ、もしくは5つです。</p>
+<ul>
+<li>
+<p><strong><code>wav.scp</code></strong> 音声IDと対応する音声ファイルのパスを示したファイル。下記に例を示します。</p>
+<pre><code>utt_id_1 /path/to/utt_id_1.wav
+utt_id_2 /path/to/utt_id_2.wav
+utt_id_3 /path/to/utt_id_3.wav
+</code></pre><p>各行は音声IDでソートされ、音声IDはユニークである必要があります。IDの命名規則は自由ですが、<code>&lt;話者名&gt;_&lt;音声ファイル名&gt;</code>とすることが多いです。後述の<code>segments</code>ファイルがデータディレクトリ内に存在しない場合、音声IDが発話IDとして利用されます。</p>
+<p>音声ファイルのパスの部分は、任意のコマンドのパイプに置き換えることも可能です。以下に、<code>sox</code>コマンドによってサンプリングレートを変換する際の例を示します。</p>
+<pre><code>utt_id_1 sox /path/to/utt_id_1.wav -t wav - rate 24000 |
+utt_id_2 sox /path/to/utt_id_2.wav -t wav - rate 24000 |
+utt_id_3 sox /path/to/utt_id_3.wav -t wav - rate 24000 |
+</code></pre><p>コマンドを記述した場合、このファイルを読み込む際に自動的にコマンドが実行され、その出力読み込むことが可能です。可読性は落ちますが、中間ファイルを生成したくない場合に便利な記法です。</p>
+</li>
+<li>
+<p><strong><code>text</code></strong>: 発話IDとその発話IDの音声の発話内容を記したファイル。下記に例を示します。</p>
+<pre><code>utt_id_1 飛ぶ自由を得ることは
+utt_id_2 人類の夢であった
+utt_id_3 55歳だって嬉しいときは嬉しいのだ
+</code></pre><p>各行は発話IDでソートされている必要があります。TTSでは、入力として音素や読みを利用することが多いですが、ESPnet2では生のテキストから音素への変換は学習もしくは推論時に逐次的に行われるため、データディレクトリの準備の段階では生のテキストを利用してこのファイルを作成すれば良いです。</p>
+</li>
+<li>
+<p><strong><code>utt2spk</code></strong>: 発話IDとその発話IDの音声の話者IDを記したファイル。下記に例を示します。</p>
+<pre><code>utt_id_1 spk_1
+utt_id_2 spk_1
+utt_id_3 spk_2
+</code></pre><p>ESPnetでは基本的に話者情報を利用しないので、話者情報が存在しない場合はダミーの話者IDを利用すれば良いです(例: <code>utt_id_1 dummy</code>)。</p>
+</li>
+<li>
+<p><strong><code>spk2utt</code></strong>: 話者IDとその話者の発話IDを並べたファイル。下記に例を示します。</p>
+<pre><code>spk_1 utt_id_1 utt_id_2
+spk_2 utt_id_3
+</code></pre><p>このファイルは<code>utt2spk</code>ファイルから自動的に生成することが可能なので、自分で作成する必要はありません。</p>
+</li>
+<li>
+<p><strong><code>segments</code></strong>(Optional): 発話ID、音声ID、開始 [sec]、終端 [sec]を記したファイル。<code>wav.scp</code>内の各発話をさらに細かく分割する場合に利用します。下記に例を示します。</p>
+<pre><code>utt_id_1_000000_001000 utt_id_1 0.0 10.0
+utt_id_1_001000_001500 utt_id_1 10.0 15.0
+</code></pre><p>各行は発話IDソートされ、発話IDはユニークである必要があります。このファイルが存在する場合、<code>text</code>、<code>utt2spk</code>、そして<code>spk2utt</code>内の発話IDが、<code>wav.scp</code>の音声IDではなく、<code>segments</code>ファイルの発話IDに対応するようになります。 このため、<code>segments</code>、<code>text</code>、そして<code>utt2spk</code>の行数は必ず一致する必要があります。</p>
+<p><code>segments</code>は、非常に長い講演音声などを中間ファイルを生成することなく処理したい場合に利用することが多いです。また、TTSモデルを学習する際に、始端と終端のサイレンスを取り除きたい場合にも利用することができます。この場合、音声IDと発話IDが1対1対応となるため、発話IDと音声IDは同じものを利用することができます。</p>
+<pre><code>utt_id_1 utt_id_1 1.5 4.0
+utt_id_2 utt_id_2 3.1 12.0
+utt_id_3 utt_id_3 2.1 9.0
+</code></pre></li>
+</ul>
+<h3 id="asrレシピの流れ">ASRレシピの流れ</h3>
+<p>ここでは、ASRレシピの流れを説明します。ASRレシピのテンプレートスクリプト(<code>asr.sh</code>)は全14ステージで構成されています。</p>
+<p>以下では、各ステージで行われる処理を簡単に概説します。</p>
+<ul>
+<li>
+<p><strong>Stage 1</strong>: 学習セット、検証セット、そして評価セットに対応するデータディレクトリを生成するステージ。<code>local/data.sh</code>が呼び出されます。</p>
+</li>
+<li>
+<p><strong>Stage 2(Optional)</strong>: 話速変化に基づくデータ拡張を実施するステージ。<code>--speed_purturb_factors</code>オプションを指定した場合のみ実行されます。Stage 1で作成された学習セットのデータディレクトリ内の<code>wav.scp</code>を<code>sox</code>コマンドを用いて拡張します。</p>
+</li>
+<li>
+<p><strong>Stage 3</strong>: 特徴量抽出を行うステージ。<code>--feats_type</code>オプションに応じて処理が異なります。デフォルトは<code>feats_type=raw</code>であり、特徴量抽出の代わりに<code>wav.scp</code>の整形のみが行われます。<code>feats_type=raw</code>以外を利用する場合は、Kaldiの特徴量抽出を利用します。この場合、Kaldiのコンパイルが必要となります。</p>
+</li>
+<li>
+<p><strong>Stage 4</strong>: 発話のフィルタリングを行うステージ。学習セットと検証セットの中の最短しきい値以下の発話と最長しきい値以上の長さの発話を取り除きます。最短及び最長しきい値は<code>--min_wav_duration</code>及び<code>--max_wav_duration</code>オプションでそれぞれ指定することができます。</p>
+</li>
+<li>
+<p><strong>Stage 5</strong>: トークンリスト(辞書)を作成するステージ。<code>--token_type</code>オプションに応じて、利用するトークンのタイプが異なります。ASRでは<code>token_type=char</code>もしくは<code>token_type=bpe</code>が利用可能です。<code>token_type=bpe</code>の場合、<a href="https://github.com/google/sentencepiece">SentencePiece</a>によるサブワードへの分割が行われます。</p>
+</li>
+<li>
+<p><strong>Stage 6(Optional)</strong>: 言語モデル学習のための統計量を算出するステージ。動的にバッチサイズを変更するための各データのシェイプ情報(系列長及び次元数)を取得します。言語モデルの利用をしない場合、<code>--use_lm</code>オプションを<code>use_lm=false</code>にすることでStage 6から8までをスキップすることができます。</p>
+</li>
+<li>
+<p><strong>Stage 7(Optional)</strong>: 言語モデルの学習を行うステージ。<code>--lm_config</code>及び<code>--lm_args</code>オプションに応じて言語モデルの学習を行います。</p>
+</li>
+<li>
+<p><strong>Stage 8(Optional)</strong>: 学習した言語モデルのパープレキシティ(PPL)を計算するステージ。簡易的に言語モデルの評価を実施します。</p>
+</li>
+<li>
+<p><strong>Stage 9</strong>: ASRモデルの学習のための統計量を算出するステージ。動的にバッチサイズを変更するためのデータのシェイプ情報(系列長及び次元数)と、特徴量の正規化を行うための学習データ全体の統計量(平均及び分散)を計算します。</p>
+</li>
+<li>
+<p><strong>Stage 10</strong>: ASRモデルの学習を行うステージ。<code>--asr_config</code>及び<code>--asr_args</code>オプションに応じてASRモデルの学習を行います。</p>
+</li>
+<li>
+<p><strong>Stage 11</strong>: 学習したモデルを利用してデコーディングを行うステージ。<code>--inference_config</code>及び<code>--inference_args</code>オプションに応じて、学習した言語モデルとASRモデルを用いた推論を行います。</p>
+</li>
+<li>
+<p><strong>Stage 12</strong>: デコードされた結果の評価を行うステージ。Character Error Rate(CER)及びWord Error Rate(WER)を算出します。</p>
+</li>
+<li>
+<p><strong>Stage 13-14(Optional)</strong>: 学習済みのモデルのパッキング及びZenodoへのアップロードを行うステージ。利用するには、Zenodoにユーザー登録を行い、トークンを発行する必要があります。詳細に関しては<a href="https://github.com/espnet/espnet_model_zoo">ESPnet Model Zoo</a>を参照してください。</p>
+</li>
+</ul>
+<p>全ての利用可能なオプションは<code>asr.sh --help</code>で参照することができます。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cd espnet/egs2/TEMPLATE/asr1
+$ ./asr.sh --help
+2020-09-14T15:38:49<span style="color:#f92672">(</span>asr.sh:208:main<span style="color:#f92672">)</span> ./asr.sh --help
+Usage: ./asr.sh --train-set &lt;train_set_name&gt; --valid-set &lt;valid_set_name&gt; --test_sets &lt;test_set_names&gt; --srctexts &lt;srctexts&gt;
+
+Options:
+    <span style="color:#75715e"># General configuration</span>
+    --stage          <span style="color:#75715e"># Processes starts from the specified stage(default=&#34;1&#34;).</span>
+    --stop_stage     <span style="color:#75715e"># Processes is stopped at the specified stage(default=&#34;10000&#34;).</span>
+    --skip_data_prep <span style="color:#75715e"># Skip data preparation stages(default=&#34;false&#34;).</span>
+    --skip_train     <span style="color:#75715e"># Skip training stages(default=&#34;false&#34;).</span>
+    --skip_eval      <span style="color:#75715e"># Skip decoding and evaluation stages(default=&#34;false&#34;).</span>
+    --skip_upload    <span style="color:#75715e"># Skip packing and uploading stages(default=&#34;true&#34;).</span>
+    --ngpu           <span style="color:#75715e"># The number of gpus(&#34;0&#34; uses cpu, otherwise use gpu, default=&#34;1&#34;).</span>
+    --num_nodes      <span style="color:#75715e"># The number of nodes(default=&#34;1&#34;).</span>
+    --nj             <span style="color:#75715e"># The number of parallel jobs(default=&#34;32&#34;).</span>
+    --inference_nj   <span style="color:#75715e"># The number of parallel jobs in decoding(default=&#34;32&#34;).</span>
+    --gpu_inference  <span style="color:#75715e"># Whether to perform gpu decoding(default=&#34;false&#34;).</span>
+    --dumpdir        <span style="color:#75715e"># Directory to dump features(default=&#34;dump&#34;).</span>
+    --expdir         <span style="color:#75715e"># Directory to save experiments(default=&#34;exp&#34;).</span>
+    --python         <span style="color:#75715e"># Specify python to execute espnet commands(default=&#34;python3&#34;).</span>
+
+    <span style="color:#75715e"># Data preparation related</span>
+    --local_data_opts <span style="color:#75715e"># The options given to local/data.sh(default=&#34;&#34;).</span>
+
+    <span style="color:#75715e"># Speed perturbation related</span>
+    --speed_perturb_factors <span style="color:#75715e"># speed perturbation factors, e.g. &#34;0.9 1.0 1.1&#34;(separated by space, default=&#34;&#34;).</span>
+
+    <span style="color:#75715e"># Feature extraction related</span>
+    --feats_type       <span style="color:#75715e"># Feature type(raw, fbank_pitch or extracted, default=&#34;raw&#34;).</span>
+    --audio_format     <span style="color:#75715e"># Audio format(only in feats_type=raw, default=&#34;flac&#34;).</span>
+    --fs               <span style="color:#75715e"># Sampling rate(default=&#34;16k&#34;).</span>
+    --min_wav_duration <span style="color:#75715e"># Minimum duration in second(default=&#34;0.1&#34;).</span>
+    --max_wav_duration <span style="color:#75715e"># Maximum duration in second(default=&#34;20&#34;).</span>
+
+    <span style="color:#75715e"># Tokenization related</span>
+    --token_type              <span style="color:#75715e"># Tokenization type(char or bpe, default=&#34;bpe&#34;).</span>
+    --nbpe                    <span style="color:#75715e"># The number of BPE vocabulary(default=&#34;30&#34;).</span>
+    --bpemode                 <span style="color:#75715e"># Mode of BPE(unigram or bpe, default=&#34;unigram&#34;).</span>
+    --oov                     <span style="color:#75715e"># Out of vocabulary symbol(default=&#34;&lt;unk&gt;&#34;).</span>
+    --blank                   <span style="color:#75715e"># CTC blank symbol(default=&#34;&lt;blank&gt;&#34;).</span>
+    --sos_eos                 <span style="color:#75715e"># sos and eos symbole(default=&#34;&lt;sos/eos&gt;&#34;).</span>
+    --bpe_input_sentence_size <span style="color:#75715e"># Size of input sentence for BPE(default=&#34;100000000&#34;).</span>
+    --bpe_nlsyms              <span style="color:#75715e"># Non-linguistic symbol list for sentencepiece, separated by a comma.(default=&#34;&#34;).</span>
+    --bpe_char_cover          <span style="color:#75715e"># Character coverage when modeling BPE(default=&#34;1.0&#34;).</span>
+
+    <span style="color:#75715e"># Language model related</span>
+    --lm_tag          <span style="color:#75715e"># Suffix to the result dir for language model training(default=&#34;&#34;).</span>
+    --lm_exp          <span style="color:#75715e"># Specify the direcotry path for LM experiment.</span>
+                      <span style="color:#75715e"># If this option is specified, lm_tag is ignored(default=&#34;&#34;).</span>
+    --lm_config       <span style="color:#75715e"># Config for language model training(default=&#34;&#34;).</span>
+    --lm_args         <span style="color:#75715e"># Arguments for language model training(default=&#34;&#34;).</span>
+                      <span style="color:#75715e"># e.g., --lm_args &#34;--max_epoch 10&#34;</span>
+                      <span style="color:#75715e"># Note that it will overwrite args in lm config.</span>
+    --use_word_lm     <span style="color:#75715e"># Whether to use word language model(default=&#34;false&#34;).</span>
+    --word_vocab_size <span style="color:#75715e"># Size of word vocabulary(default=&#34;10000&#34;).</span>
+    --num_splits_lm   <span style="color:#75715e"># Number of splitting for lm corpus(default=&#34;1&#34;).</span>
+
+    <span style="color:#75715e"># ASR model related</span>
+    --asr_tag          <span style="color:#75715e"># Suffix to the result dir for asr model training(default=&#34;&#34;).</span>
+    --asr_exp          <span style="color:#75715e"># Specify the direcotry path for ASR experiment.</span>
+                       <span style="color:#75715e"># If this option is specified, asr_tag is ignored(default=&#34;&#34;).</span>
+    --asr_config       <span style="color:#75715e"># Config for asr model training(default=&#34;&#34;).</span>
+    --asr_args         <span style="color:#75715e"># Arguments for asr model training(default=&#34;&#34;).</span>
+                       <span style="color:#75715e"># e.g., --asr_args &#34;--max_epoch 10&#34;</span>
+                       <span style="color:#75715e"># Note that it will overwrite args in asr config.</span>
+    --feats_normalize  <span style="color:#75715e"># Normalizaton layer type(default=&#34;global_mvn&#34;).</span>
+    --num_splits_asr   <span style="color:#75715e"># Number of splitting for lm corpus (default=&#34;1&#34;).</span>
+
+    <span style="color:#75715e"># Decoding related</span>
+    --inference_tag       <span style="color:#75715e"># Suffix to the result dir for decoding(default=&#34;&#34;).</span>
+    --inference_config    <span style="color:#75715e"># Config for decoding(default=&#34;&#34;).</span>
+    --inference_args      <span style="color:#75715e"># Arguments for decoding(default=&#34;&#34;).</span>
+                          <span style="color:#75715e"># e.g., --inference_args &#34;--lm_weight 0.1&#34;</span>
+                          <span style="color:#75715e"># Note that it will overwrite args in inference config.</span>
+    --inference_lm        <span style="color:#75715e"># Language modle path for decoding(default=&#34;valid.loss.ave.pth&#34;).</span>
+    --inference_asr_model <span style="color:#75715e"># ASR model path for decoding(default=&#34;valid.acc.ave.pth&#34;).</span>
+    --download_model      <span style="color:#75715e"># Download a model from Model Zoo and use it for decoding(default=&#34;&#34;).</span>
+
+    <span style="color:#75715e"># [Task dependent] Set the datadir name created by local/data.sh</span>
+    --train_set     <span style="color:#75715e"># Name of training set(required).</span>
+    --valid_set     <span style="color:#75715e"># Name of validation set used for monitoring/tuning network training(required).</span>
+    --test_sets     <span style="color:#75715e"># Names of test sets.</span>
+                    <span style="color:#75715e"># Multiple items(e.g., both dev and eval sets) can be specified(required).</span>
+    --srctexts      <span style="color:#75715e"># Used for the training of BPE and LM and the creation of a vocabulary list(required).</span>
+    --lm_dev_text   <span style="color:#75715e"># Text file path of language model development set(default=&#34;&#34;).</span>
+    --lm_test_text  <span style="color:#75715e"># Text file path of language model evaluation set(default=&#34;&#34;).</span>
+    --nlsyms_txt    <span style="color:#75715e"># Non-linguistic symbol list if existing(default=&#34;none&#34;).</span>
+    --cleaner       <span style="color:#75715e"># Text cleaner(default=&#34;none&#34;).</span>
+    --g2p           <span style="color:#75715e"># g2p method(default=&#34;none&#34;).</span>
+    --lang          <span style="color:#75715e"># The language type of corpus(default=noinfo).</span>
+    --asr_speech_fold_length <span style="color:#75715e"># fold_length for speech data during ASR training(default=&#34;800&#34;).</span>
+    --asr_text_fold_length   <span style="color:#75715e"># fold_length for text data during ASR training(default=&#34;150&#34;).</span>
+    --lm_fold_length         <span style="color:#75715e"># fold_length for LM training(default=&#34;150&#34;).</span>
+</code></pre></div><h3 id="asrのレシピの実行">ASRのレシピの実行</h3>
+<p>ここでは、実際のASRレシピの実行手順を紹介します。JSUTコーパスを用いたASRレシピをサンプルとして利用します。</p>
+<p>まず、レシピのディレクトリに移動します。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cd espnet/egs2/jsut/asr1
+</code></pre></div><p>レシピ内の全てのスクリプトは、レシピディレクトリのルート(<code>egs2/&lt;corpus_name&gt;/&lt;task&gt;</code>)から実行されることを想定しています。そのため、レシピを実行する際は、常にレシピディレクトリのルートをワーキングディレクトリとすることに注意してください。</p>
+<p>次に、<code>cmd.sh</code>及び<code>db.sh</code>の編集を行います。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ vim cmd.sh
+$ vim db.sh
+</code></pre></div><p>ジョブスケジューラと連携してレシピを実行する場合、<code>cmd.sh</code>の<code>cmd_backend</code>を変更します(デフォルトは<code>cmd_backend=local</code>)。コーパスがダウンロードされる場所を変更する場合、<code>db.sh</code>の<code>JSUT</code>を変更します(デフォルトは<code>JSUT=downloads</code>)。いずれもデフォルトの設定を利用する場合、編集を行う必要はありません。</p>
+<p>編集完了後、<code>run.sh</code>を実行します。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ./run.sh
+</code></pre></div><p>これにより、全てのステージが順次実行され、実験は完了となります。デフォルトでは、RNNベースの<a href="http://zhaoshuaijiang.com/file/Hybrid_CTC_Attention_Architecture_for_End-to-End_Speech_Recognition.pdf">Joint CTC-Attentionモデル</a>が学習されます。</p>
+<p>レシピの実行完了後、以下に示すディレクトリがワーキングディレクトリ内に追加されます。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#########################</span>
+<span style="color:#75715e">#    Stage 1-5で作成     #</span>
+<span style="color:#75715e">#########################</span>
+<span style="color:#75715e"># ダウンロードされたコーパス</span>
+- downloads/
+  ├ jsut-lab/
+  └ jsut_ver1.1/
+<span style="color:#75715e"># データディレクトリ</span>
+- data/
+  ├ dev/        <span style="color:#75715e"># 検証セット</span>
+  ├ eval1/      <span style="color:#75715e"># 評価セット</span>
+  ├ token_list/ <span style="color:#75715e"># トークンリスト(辞書)</span>
+  └ tr_no_dev/  <span style="color:#75715e"># 学習セット</span>
+<span style="color:#75715e"># 特徴量ディレクトリ</span>
+- dump/
+  └ raw/
+    ├ dev/       <span style="color:#75715e"># 検証セット</span>
+    ├ eval1/     <span style="color:#75715e"># 評価セット</span>
+    ├ tr_no_dev/ <span style="color:#75715e"># 学習セット</span>
+    └ srctexts   <span style="color:#75715e"># 言語モデル学習用テキスト</span>
+                  <span style="color:#75715e">#(辞書作成用兼)</span>
+<span style="color:#75715e">#########################</span>
+<span style="color:#75715e">#    Stage 6以降で作成    #</span>
+<span style="color:#75715e">#########################</span>
+<span style="color:#75715e"># 実験ディレクトリ</span>
+- exp/
+  ├ asr_stats_raw/
+  │ ├ train/ <span style="color:#75715e"># 学習セットASR統計量</span>
+  │ └ valid/ <span style="color:#75715e"># 検証セットASR統計量</span>
+  ├ asr_train_asr_rnn_raw_char/
+  │ ├ att_ws/        <span style="color:#75715e"># Attentionプロット</span>
+  │ ├ decode_*/      <span style="color:#75715e"># デコーディング結果</span>
+  │ ├ tensorboard/   <span style="color:#75715e"># Tensorboardログ</span>
+  │ ├ images/        <span style="color:#75715e"># 学習曲線プロット</span>
+  │ ├ README.md      <span style="color:#75715e"># 評価結果のサマリー</span>
+  │ ├ train.log      <span style="color:#75715e"># 学習ログ</span>
+  │ ├ *.pth          <span style="color:#75715e"># モデルパラメータ</span>
+  │ └ checkpoint.pth <span style="color:#75715e"># モデルパラメータ(Optimizer等を含む)</span>
+  ├ lm_stats/
+  │ ├ train/ <span style="color:#75715e"># 学習セットLM統計量</span>
+  │ └ valid/ <span style="color:#75715e"># 検証セットLM統計量</span>
+  └ lm_train_lm_char/
+    ├ perplexity_*/  <span style="color:#75715e"># PPL評価結果</span>
+    ├ tensorboard/   <span style="color:#75715e"># Tensorboardログ</span>
+    ├ images/        <span style="color:#75715e"># 学習曲線プロット</span>
+    ├ train.log      <span style="color:#75715e"># 学習ログ</span>
+    ├ *.pth          <span style="color:#75715e"># モデルパラメータ</span>
+    └ checkpoint.pth <span style="color:#75715e"># モデルパラメータ(Optimizer等を含む)</span>
+</code></pre></div><p>実験ディレクトリ内の<code>images/</code>及び<code>tensorboard</code>は逐次更新されていくので、実験の様子をモニタリングするのに便利です。以下に<code>images/</code>に生成される学習曲線の例を示します。</p>
+<div align="center">
+<img src=figs/training_curve_ex.png width=75%>
+<br>
+</div>
+<p>同様に、<code>att_ws</code>にはエポックごとのAttentionのプロットが保存されています。Seq2SeqモデルではAttentionが対角になることが非常に重要であるため、学習曲線と合わせてモニタリングすることをおすすめします。以下に<code>att_ws/</code>に生成されるプロットの例を示します。</p>
+<div align="center">
+<img src=figs/asr_attention_ex.png width=75%>
+<br>
+</div>
+<p><code>run.sh</code>を実行することで一通り実験は完了しますが、初心者の場合、開始及び終了ステージを指定するオプションである<code>--stage</code>と<code>--stop-stage</code>を利用して、それぞれのステージを順番に実行することをおすすめします。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># stage 1のみを実行</span>
+$ ./run.sh --stage <span style="color:#ae81ff">1</span> --stop-stage <span style="color:#ae81ff">1</span>
+<span style="color:#75715e"># stage 2のみを実行</span>
+$ ./run.sh --stage <span style="color:#ae81ff">2</span> --stop-stage <span style="color:#ae81ff">2</span>
+</code></pre></div><p>これにより、各ステージでどのようなファイルが生成されるのかを確認しながら実験を進めることができます。</p>
+<p>ここからは、レシピをより実践的に利用するためのオプションをいくつか概説します。マルチGPUによる学習行う場合、<code>--ngpu</code>オプションを利用します。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ./run.sh --ngpu <span style="color:#ae81ff">3</span>
+</code></pre></div><p>ローカルで実行する際(<code>cmd_backend=local</code>)に、利用するGPUを指定する場合、環境変数<code>CUDA_VISIBLE_DEVICES</code>を指定します。</p>
+<blockquote>
+<p>Slurm等のジョブスケジューラと連携している際には、自動的にGPUが割り当てられるため、指定する必要はありません。</p>
+</blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ CUDA_VISIBLE_DEVICES<span style="color:#f92672">=</span>0,1,2 ./run.sh --ngpu <span style="color:#ae81ff">3</span>
+</code></pre></div><p>Slurm等のジョブスケジューラと連携している際には、マルチノード学習も可能です。
+4つのノードを利用し、それぞれのノードで4つのGPUを利用する場合の例を示します($4\times4=16$ GPUs)。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ./run.sh --ngpu <span style="color:#ae81ff">4</span> --num_nodes <span style="color:#ae81ff">4</span>
+</code></pre></div><p>学習するASRモデルを変更するには、\code{&ndash;asr_config}に渡すコンフィグファイルを変更します。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ./run.sh --asr_config conf/train_asr_transformer.yaml
+</code></pre></div><p>もし、既に一度他のモデルを学習し終わっている場合には、最初のステージをスキップしてASRモデル学習のステージから始めることもできます。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ./run.sh --stage <span style="color:#ae81ff">10</span> --asr_config conf/train_asr_transformer.yaml
+</code></pre></div><p>モデルのハイパーパラメータを変更して学習を行うには、逐次コンフィグファイル(<code>*.yaml</code>)をコピー・編集しても良いですが、一部のパラメータのみを変更したい場合は<code>--asr_args</code>オプションを利用するのが便利です。以下に、指定したコンフィグ(<code>*.yaml</code>)内のバッチサイズを上書きして利用する例を示します。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ./run.sh --stage <span style="color:#ae81ff">10</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --asr_config conf/train_asr_rnn.yaml <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --asr_args <span style="color:#e6db74">&#34;--batch_size 64&#34;</span>
+</code></pre></div><p>複数のオプションを変更したり、Dict型のオプションを変更することも可能です。以下に、バッチサイズとOptimizerの学習率を変更する例を示します。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ./run.sh --stage <span style="color:#ae81ff">10</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --asr_config conf/train_asr_rnn.yaml <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --asr_args <span style="color:#e6db74">&#34;--batch_size 64 --optim_conf lr=0.1&#34;</span>
+</code></pre></div><p><code>--asr_args</code>オプションを指定した場合、自動的に保存されるディレクトリの名前も指定したオプションに応じて更新されます。そのため、モデルが上書きされる心配をする必要はありません。また、これにより、<code>for</code>ループを利用した簡易的なハイパーパラメータの探索も可能です。</p>
+<p>また、<code>--asr_tag</code>オプションを利用することでモデルディレクトリの名前を明示的に決めることも可能です。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ./run.sh --stage <span style="color:#ae81ff">10</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --asr_config conf/train_asr_rnn.yaml <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --asr_args <span style="color:#e6db74">&#34;--batch_size 64 --optim_conf lr=0.1&#34;</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --asr_tag <span style="color:#e6db74">&#34;train_rnn_batchs_size_64_lr_0.1&#34;</span>
+</code></pre></div><p>言語モデルや推論のコンフィグの変更も全く同様です。言語モデルのコンフィグの変更の場合、<code>--lm_config</code>オプションと<code>--lm_args</code>オプションが、推論のコンフィグの変更の場合、<code>--inference_config</code>オプションと<code>--inference_args</code>オプションがそれぞれコンフィグファイルの指定と上書きに対応します。</p>
+<p>コンフィグファイル(<code>*.yaml</code>)で指定可能なオプションの一覧を表示するには以下のコマンドを利用します。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># Python環境のアクティベート</span>
+$ . ./path.sh
+
+<span style="color:#75715e"># Helpメッセージの表示</span>
+$ python3 -m espnet2.bin.lm_train --help
+$ python3 -m espnet2.bin.asr_train --help
+$ python3 -m espnet2.bin.lm_inference --help
+$ python3 -m espnet2.bin.asr_inference --help
+
+<span style="color:#75715e"># デフォルトコンフィグを表示</span>
+$ python3 -m espnet2.bin.lm_train --print_config
+$ python3 -m espnet2.bin.asr_train --print_config
+
+<span style="color:#75715e"># 与えられたコンフィグをファイルを反映したコンフィグを表示</span>
+$ python3 -m espnet2.bin.lm_train --print_config --config conf/train_lm.yaml
+$ python3 -m espnet2.bin.asr_train --print_config --config conf/train_asr_transformer.yaml
+</code></pre></div><p>より詳細に関しては、<a href="https://espnet.github.io/espnet/espnet2_training_option.html">コンフィグの変更</a>を参照してください。</p>
+<h3 id="ttsレシピの流れ">TTSレシピの流れ</h3>
+<p>ここでは、TTSレシピの流れについて概説します。TTSのテンプレートスクリプト(<code>tts.sh</code>)は以下の9ステージで構成されています。</p>
+<ul>
+<li><strong>Stage 1</strong>: データディレクトリを生成するステージ。ASRレシピのStage 1と同一です。</li>
+<li><strong>Stage 2</strong>: 特徴量抽出を行うステージ。ASRレシピのStage 3と同一です。</li>
+<li><strong>Stage 3</strong>: 発話のフィルタリングを行うステージ。 ASRレシピのStage 4と同一です。</li>
+<li><strong>Stage 4</strong>: トークンリスト(辞書)を作成するステージ。<code>--token_type</code>オプションに応じて、利用するトークンのタイプが異なります。TTSでは<code>token_type=char</code>もしくは<code>token_type=phn</code>が利用可能です。<code>token_type=phn</code>の場合、<code>--g2p</code>オプションで指定されたGrapheme to Phoneme(G2P)モジュールによって音素へと変換されます。日本語の場合、<code>g2p=pyopenjtalk</code>を指定することで<a href="http://open-jtalk.sp.nitech.ac.jp/">OpenJTalk</a>のテキストフロントエンド部を利用した音素への変換を行うことができます。また、<code>--cleaner</code>オプションでテキストのクリーニングを行うモジュールを指定することもできます。</li>
+<li><strong>Stage 5</strong>: TTSモデル学習のための統計量を計算するステージ。動的にバッチサイズを変更するためのデータのシェイプ情報(系列長及び次元数)と、学習データ全体での音響特徴量の統計量(平均及び分散)を計算します。</li>
+<li><strong>Stage 6</strong>: TTSモデルの学習を行うステージ。<code>--train_config</code>及び<code>--train_args</code>オプションに応じてTTSモデルの学習を行います。</li>
+<li><strong>Stage 7</strong>: 学習したTTSモデルを利用してデコーディングを行うステージ。<code>--inference_config</code>及び<code>--inference_args</code>オプションに応じて推論を行います。</li>
+<li><strong>Stage 8-9(Optional)</strong>: 学習済みのモデルのパッキング及びZenodoへのアップロードを行うステージ。ASRのStage 13-14と同一です。</li>
+</ul>
+<p>全ての利用可能なオプションは<code>tts.sh --help</code>で参照することができます。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cd espnet/egs2/TEMPLATE/tts1
+$ ./tts.sh --help
+2020-09-14T15:59:21<span style="color:#f92672">(</span>tts.sh:187:main<span style="color:#f92672">)</span> ./tts.sh --help
+Usage: ./tts.sh --train-set <span style="color:#e6db74">&#34;&lt;train_set_name&gt;&#34;</span> --valid-set <span style="color:#e6db74">&#34;&lt;valid_set_name&gt;&#34;</span> --test_sets <span style="color:#e6db74">&#34;&lt;test_set_names&gt;&#34;</span> --srctexts <span style="color:#e6db74">&#34;&lt;srctexts&gt;&#34;</span>
+
+Options:
+    <span style="color:#75715e"># General configuration</span>
+    --stage          <span style="color:#75715e"># Processes starts from the specified stage(default=&#34;1&#34;).</span>
+    --stop_stage     <span style="color:#75715e"># Processes is stopped at the specified stage(default=&#34;10000&#34;).</span>
+    --skip_data_prep <span style="color:#75715e"># Skip data preparation stages(default=&#34;false&#34;).</span>
+    --skip_train     <span style="color:#75715e"># Skip training stages(default=&#34;false&#34;).</span>
+    --skip_eval      <span style="color:#75715e"># Skip decoding and evaluation stages(default=&#34;false&#34;).</span>
+    --skip_upload    <span style="color:#75715e"># Skip packing and uploading stages(default=&#34;true&#34;).</span>
+    --ngpu           <span style="color:#75715e"># The number of gpus(&#34;0&#34; uses cpu, otherwise use gpu, default=&#34;1&#34;).</span>
+    --num_nodes      <span style="color:#75715e"># The number of nodes(default=&#34;1&#34;).</span>
+    --nj             <span style="color:#75715e"># The number of parallel jobs(default=&#34;32&#34;).</span>
+    --inference_nj   <span style="color:#75715e"># The number of parallel jobs in decoding(default=&#34;32&#34;).</span>
+    --gpu_inference  <span style="color:#75715e"># Whether to perform gpu decoding(default=&#34;false&#34;).</span>
+    --dumpdir        <span style="color:#75715e"># Directory to dump features(default=&#34;dump&#34;).</span>
+    --expdir         <span style="color:#75715e"># Directory to save experiments(default=&#34;exp&#34;).</span>
+    --python         <span style="color:#75715e"># Specify python to execute espnet commands(default=&#34;python3&#34;).</span>
+
+    <span style="color:#75715e"># Data prep related</span>
+    --local_data_opts <span style="color:#75715e"># Options to be passed to local/data.sh(default=&#34;&#34;).</span>
+
+    <span style="color:#75715e"># Feature extraction related</span>
+    --feats_type       <span style="color:#75715e"># Feature type(fbank or stft or raw, default=&#34;raw&#34;).</span>
+    --audio_format     <span style="color:#75715e"># Audio format(only in feats_type=raw, default=&#34;flac&#34;).</span>
+    --min_wav_duration <span style="color:#75715e"># Minimum duration in second(default=&#34;0.1&#34;).</span>
+    --max_wav_duration <span style="color:#75715e"># Maximum duration in second(default=&#34;20&#34;).</span>
+    --fs               <span style="color:#75715e"># Sampling rate(default=&#34;16000&#34;).</span>
+    --fmax             <span style="color:#75715e"># Maximum frequency of Mel basis(default=&#34;7600&#34;).</span>
+    --fmin             <span style="color:#75715e"># Minimum frequency of Mel basis(default=&#34;80&#34;).</span>
+    --n_mels           <span style="color:#75715e"># The number of mel basis(default=&#34;80&#34;).</span>
+    --n_fft            <span style="color:#75715e"># The number of fft points(default=&#34;1024&#34;).</span>
+    --n_shift          <span style="color:#75715e"># The number of shift points(default=&#34;256&#34;).</span>
+    --win_length       <span style="color:#75715e"># Window length(default=&#34;null&#34;).</span>
+    --f0min            <span style="color:#75715e"># Maximum f0 for pitch extraction(default=&#34;80&#34;).</span>
+    --f0max            <span style="color:#75715e"># Minimum f0 for pitch extraction(default=&#34;400&#34;).</span>
+    --oov              <span style="color:#75715e"># Out of vocabrary symbol(default=&#34;&lt;unk&gt;&#34;).</span>
+    --blank            <span style="color:#75715e"># CTC blank symbol(default=&#34;&lt;blank&gt;&#34;).</span>
+    --sos_eos          <span style="color:#75715e"># sos and eos symbole(default=&#34;&lt;sos/eos&gt;&#34;).</span>
+
+    <span style="color:#75715e"># Training related</span>
+    --train_config  <span style="color:#75715e"># Config for training(default=&#34;&#34;).</span>
+    --train_args    <span style="color:#75715e"># Arguments for training(default=&#34;&#34;).</span>
+                    <span style="color:#75715e"># e.g., --train_args &#34;--max_epoch 1&#34;</span>
+                    <span style="color:#75715e"># Note that it will overwrite args in train config.</span>
+    --tag           <span style="color:#75715e"># Suffix for training directory(default=&#34;&#34;).</span>
+    --tts_exp       <span style="color:#75715e"># Specify the direcotry path for experiment.</span>
+                    <span style="color:#75715e"># If this option is specified, tag is ignored(default=&#34;&#34;).</span>
+    --tts_stats_dir <span style="color:#75715e"># Specify the direcotry path for statistics.</span>
+                    <span style="color:#75715e"># If empty, automatically decided(default=&#34;&#34;).</span>
+    --num_splits    <span style="color:#75715e"># Number of splitting for tts corpus(default=&#34;1&#34;).</span>
+    --write_collected_feats <span style="color:#75715e"># Whether to dump features in statistics collection(default=&#34;false&#34;).</span>
+
+    <span style="color:#75715e"># Decoding related</span>
+    --inference_config  <span style="color:#75715e"># Config for decoding(default=&#34;&#34;).</span>
+    --inference_args    <span style="color:#75715e"># Arguments for decoding,(default=&#34;&#34;).</span>
+                        <span style="color:#75715e"># e.g., --inference_args &#34;--threshold 0.75&#34;</span>
+                        <span style="color:#75715e"># Note that it will overwrite args in inference config.</span>
+    --inference_tag     <span style="color:#75715e"># Suffix for decoding directory(default=&#34;&#34;).</span>
+    --inference_model   <span style="color:#75715e"># Model path for decoding(default=train.loss.ave.pth).</span>
+    --griffin_lim_iters <span style="color:#75715e"># The number of iterations of Griffin-Lim(default=4).</span>
+    --download_model    <span style="color:#75715e"># Download a model from Model Zoo and use it for decoding(default=&#34;&#34;).</span>
+
+    <span style="color:#75715e"># [Task dependent] Set the datadir name created by local/data.sh.</span>
+    --train_set          <span style="color:#75715e"># Name of training set(required).</span>
+    --valid_set          <span style="color:#75715e"># Name of validation set used for monitoring/tuning network training(required).</span>
+    --test_sets          <span style="color:#75715e"># Names of test sets(required).</span>
+                         <span style="color:#75715e"># Note that multiple items(e.g., both dev and eval sets) can be specified.</span>
+    --srctexts           <span style="color:#75715e"># Texts to create token list(required).</span>
+                         <span style="color:#75715e"># Note that multiple items can be specified.</span>
+    --nlsyms_txt         <span style="color:#75715e"># Non-linguistic symbol list(default=&#34;none&#34;).</span>
+    --token_type         <span style="color:#75715e"># Transcription type(default=&#34;phn&#34;).</span>
+    --cleaner            <span style="color:#75715e"># Text cleaner(default=&#34;tacotron&#34;).</span>
+    --g2p                <span style="color:#75715e"># g2p method(default=&#34;g2p_en&#34;).</span>
+    --lang               <span style="color:#75715e"># The language type of corpus(default=&#34;noinfo&#34;).</span>
+    --text_fold_length   <span style="color:#75715e"># Fold length for text data(default=&#34;150&#34;).</span>
+    --speech_fold_length <span style="color:#75715e"># Fold length for speech data(default=&#34;800&#34;).</span>
+</code></pre></div><h3 id="ttsレシピの実行">TTSレシピの実行</h3>
+<p>ここでは、実際のASRレシピの実行手順を紹介します。JSUTコーパスを用いたTTSレシピをサンプルとして利用します。基本的な実行方法はASRレシピの場合と全く同様です。</p>
+<p>レシピディレクトリに移動して<code>run.sh</code>を実行します。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cd espnet/egs2/jsut/tts1
+$ ./run.sh
+</code></pre></div><p>ASRの場合と同様に、最初は各ステージを逐次的に実行して確認することをおすすめします。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># Stage 1のみを実行</span>
+$ ./run.sh --stage <span style="color:#ae81ff">1</span> --stop-stage <span style="color:#ae81ff">1</span>
+<span style="color:#75715e"># Stage 2のみを実行</span>
+$ ./run.sh --stage <span style="color:#ae81ff">2</span> --stop-stage <span style="color:#ae81ff">2</span>
+</code></pre></div><p>デフォルトでは、音素を入力とした<a href="https://arxiv.org/abs/1712.05884">Tacotron2</a>が学習されます。</p>
+<p>レシピの実行完了後、以下に示すディレクトリがワーキングディレクトリ内に追加されます。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#########################</span>
+<span style="color:#75715e">#    Stage 1-4で作成    #</span>
+<span style="color:#75715e">#########################</span>
+<span style="color:#75715e"># ダウンロードされたコーパス</span>
+- downloads/
+  ├ jsut-lab/
+  └ jsut_ver1.1/
+<span style="color:#75715e"># データディレクトリ</span>
+- data/
+  ├ dev/        <span style="color:#75715e"># 検証セット</span>
+  ├ eval1/      <span style="color:#75715e"># 評価セット</span>
+  ├ token_list/ <span style="color:#75715e"># トークンリスト(辞書)</span>
+  └ tr_no_dev/  <span style="color:#75715e"># 学習セット</span>
+<span style="color:#75715e"># 特徴量ディレクトリ</span>
+- dump/
+  └ raw/
+    ├ dev/       <span style="color:#75715e"># 検証セット</span>
+    ├ eval1/     <span style="color:#75715e"># 評価セット</span>
+    ├ tr_no_dev/ <span style="color:#75715e"># 学習セット</span>
+    └ srctexts   <span style="color:#75715e"># 辞書作成用テキスト</span>
+<span style="color:#75715e">#########################</span>
+<span style="color:#75715e">#   Stage 5以降で作成   #</span>
+<span style="color:#75715e">#########################</span>
+<span style="color:#75715e"># 実験ディレクトリ</span>
+- exp/
+  ├ tts_stats_*/
+  │ ├ train/ <span style="color:#75715e"># 学習セット統計量</span>
+  │ └ valid/ <span style="color:#75715e"># 検証セット統計量</span>
+  └ tts_train_*/
+    ├ att_ws/        <span style="color:#75715e"># Attentionプロット</span>
+    ├ decode_*/      <span style="color:#75715e"># デコーディング結果</span>
+    ├ tensorboard/   <span style="color:#75715e"># Tensorboardログ</span>
+    ├ images/        <span style="color:#75715e"># 学習曲線プロット</span>
+    ├ train.log      <span style="color:#75715e"># 学習ログ</span>
+    ├ *.pth          <span style="color:#75715e"># モデルパラメータ</span>
+    └ checkpoint.pth <span style="color:#75715e"># モデルパラメータ(Optimizer等を含む)</span>
+</code></pre></div><p>デコーディング結果の中身は以下の通りです。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">- exp/tts_train_*/decode_*/
+ ├ dev/   <span style="color:#75715e"># 検証セットのデコード結果</span>
+ └ eval1/ <span style="color:#75715e"># 評価セットのデコード結果</span>
+   ├ att_ws/      <span style="color:#75715e"># Attentionプロット</span>
+   ├ probs/       <span style="color:#75715e"># 生成打切確率プロット</span>
+   ├ denorm/      <span style="color:#75715e"># 逆正規化後生成特徴量</span>
+   ├ norm/        <span style="color:#75715e"># 正規化後生成特徴量</span>
+   ├ wav/         <span style="color:#75715e"># 生成音声</span>
+   ├ durations    <span style="color:#75715e"># 各音素の継続長</span>
+   ├ feats_type   <span style="color:#75715e"># 特徴量の種類</span>
+   ├ focus_rates  <span style="color:#75715e"># フォーカスレート</span>
+   └ speech_shape <span style="color:#75715e"># 生成特徴量のシェイプ情報</span>
+</code></pre></div><p>ここで、音声はGriffin-Limによって生成され、継続長及びフォーカスレートは生成時のAttentionから計算される指標です。</p>
+<p>ユーザーは、生成された特徴量ファイルを利用することで、任意のニューラルボコーダと組み合わせることが可能できます。より詳細に関しては、<a href="https://github.com/kan-bayashi/ParallelWaveGAN">ParallelWaveGAN</a>を参照してください。</p>
+<p>また、生成時のAttention(<code>att_ws/*.png</code>)や生成打ち切り確率のプロット(<code>probs/*.png</code>)を観察することで、生成がうまく行っているかを分析できます。以下に二つのプロットの例を示します。</p>
+<div align="center">
+<img src=figs/tts_attention_ex.png width=75%>
+<br>
+<img src=figs/tts_stop_prediction_ex.png width=75%>
+<br>
+</div>
+<p>レシピの実行の際のオプションはASRの場合と全く同様ですが、コンフィグファイル(<code>*.yaml</code>)で指定可能なオプションを参照する際は以下のコマンドを実行します。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># Python環境のアクティベート</span>
+$ . ./path.sh
+
+<span style="color:#75715e"># Helpメッセージの表示</span>
+$ python3 -m espnet2.bin.tts_train --help
+$ python3 -m espnet2.bin.tts_inference --help
+
+<span style="color:#75715e"># デフォルトコンフィグを表示</span>
+$ python3 -m espnet2.bin.tts_train --print_config
+
+<span style="color:#75715e"># 与えられたコンフィグをファイルを反映したコンフィグを表示</span>
+$ python3 -m espnet2.bin.tts_train --print_config --config conf/train.yaml
+</code></pre></div><p>その他のTTSレシピに関するよくある質問は<a href="https://github.com/espnet/espnet/blob/master/egs2/TEMPLATE/tts1/README.md">コチラ</a>にまとめてあるので、本記事と合わせて参照してください。</p>
+<h4 id="非自己回帰型モデルの学習">非自己回帰型モデルの学習</h4>
+<p>TTSレシピでは、自己回帰モデル(<a href="https://arxiv.org/abs/1712.05884">Tacotron2</a>、<a href="https://arxiv.org/abs/1809.08895">Transformer-TTS</a>)だけでなく、非自己回帰モデル(<a href="https://arxiv.org/abs/1905.09263">FastSpeech</a>、<a href="https://arxiv.org/abs/2006.04558">FastSpeech2</a>)の学習もサポートされています。非自己回帰モデルの学習には、教師モデルから生成される入力トークンの継続長情報が必要となるため、学習済みの教師モデルを利用した追加の手順が必要となります。</p>
+<p>まず、知識蒸留を利用したFastSpeechの学習手順を示します。知識蒸留を利用した学習の場合、FastSpeechのターゲットとなる音響特徴量は教師モデルが生成した音響特徴量となり、Groundtruthの音響特徴量は利用しません。このため、<code>--tts_exp</code>オプションで学習済みモデルのディレクトリを指定し、学習データを含む全データをデコードします。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ./run.sh --stage <span style="color:#ae81ff">7</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --tts_exp exp/&lt;teacher_model_dir&gt; <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --test_sets <span style="color:#e6db74">&#34;tr_no_dev dev eval1&#34;</span>
+</code></pre></div><p>これにより、<code>exp/&lt;teacher_model_dir&gt;/decode_train.loss.ave</code>ディレクトリに全データのデコード結果が保存されます。<code>--teacher_dumpdir</code>オプションでこのディレクトリを指定し、FastSpeechのコンフィグを使ってモデル学習のステージからレシピを実行します。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ./run.sh --stage <span style="color:#ae81ff">6</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --teacher_dumpdir exp/&lt;teacher_model_dir&gt;/decode_train.loss.ave <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --train_config conf/tuning/train_fastspeech.yaml
+</code></pre></div><p>以上で、FastSpeechの学習は完了となります。</p>
+<p>次に、FastSpeech2の学習手順を示します。FastSpeech2では、FastSpeechと異なり、ターゲットとしてGroundtruthの音響特徴量を利用します。そのため、デコードの際にTeacher-Forcingを有効にし、Groundtruthの音響特徴量に対応した継続長(<code>durations</code>)を生成します。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ./run.sh --stage <span style="color:#ae81ff">7</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --tts_exp exp/&lt;teacher_model_dir&gt; <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --test_sets <span style="color:#e6db74">&#34;tr_no_dev dev eval1&#34;</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --inference_args <span style="color:#e6db74">&#34;--use_teacher_forcing true&#34;</span>
+</code></pre></div><p>これにより、Teacher-Forcingを利用した全データのデコード結果が保存されます。FastSpeech2では、ピッチとエナジーの2つの追加の特徴量が必要となるため、ネットワークの学習ではなく、統計量の計算のステージからレシピを実行します。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ./run.sh --stage <span style="color:#ae81ff">5</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --write_collected_feats true <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --teacher_dumpdir exp/&lt;teacher_model_dir&gt;/decode_use_teacher_forcingtrue_train.loss.ave <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --tts_stats_dir exp/&lt;teacher_model_dir&gt;/decode_use_teacher_forcingtrue_train.loss.ave/stats <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  --train_config conf/tuning/train_fastspeech2.yaml
+</code></pre></div><p>ここで、<code>--write_collected_feats</code>は統計量計算の際に特徴量をキャッシュしておくオプション、<code>--tts_stats_dir</code>は統計量を保存するディレクトリを指定するオプションです。以上で、FastSpeech2の学習は完了となります。</p>
+<h3 id="より実践的な利用に向けて">より実践的な利用に向けて</h3>
+<p>ここまでで、事前学習モデルの使い方とレシピを利用したモデルの学習方法を紹介しました。より実践的な使い方として、ユーザーは自前のデータセットや新しいコーパスを用いたレシピを自作することもできます。詳細についてはESPnet2の<a href="https://github.com/espnet/espnet/tree/master/egs2/TEMPLATE">レシピテンプレート</a>を参照してください。</p>
+<p>自前のデータセットに対するレシピの作成は初めは少々躓くことが多いと思います。しかしながら一度作ってしまえば、今後すぐにゼロから再現実験を行ったり、他の人に引き継いで実験してもらうといったことが容易に行えるようになります。そのため、実験の再現性を担保するためにもレシピ化することをおすすめします。</p>
+<p>また、レシピを作ってしまえば、様々な学習の幅が広がります。例えば、公開済みの事前学習モデルを初期モデルとしてファインチューニングを実施するなどの処理も、学習コンフィグファイル(<code>*.yaml</code>)内で<code>--pretrain_path</code>及び<code>--pretrain_key</code>オプションを利用することで簡単に実施できます。事前学習モデルパラメータの一部のみを読み込むこともできるため、モデルの一部分のみを初期化して学習したいといった場合にも柔軟に対応することできます。</p>
+<p>TTSレシピでのファインチューニングを実施する例は<a href="https://github.com/espnet/espnet/blob/master/egs2/TEMPLATE/tts1/README.md"><code>How to finetune the pretrained model?</code></a>を参照してください。</p>
+<h2 id="むすび">むすび</h2>
+<p>本記事では、E2E音声処理ツールキットESPnet2を使った実践について概説しました。
+ESPnetは日本人が中心となって開発を進めており、常に熱意ある開発者を募集しています。
+興味のある方は、気軽に開発メンバーに連絡、もしくは、<a href="https://github.com/espnet/espnet">Github</a>上での議論に参加してください！</p>
+<h2 id="参考リンク">参考リンク</h2>
+<ul>
+<li><a href="https://github.com/espnet/espnet">ESPnet</a></li>
+<li><a href="https://github.com/espnet/espnet_model_zoo">ESPnet model zoo</a></li>
+<li><a href="https://espnet.github.io/espnet/">ESPnet document</a></li>
+<li><a href="https://espnet.github.io/espnet/espnet2_tutorial.html">ESPnet2 tutorial</a></li>
+<li><a href="https://github.com/espnet/espnet/blob/master/egs2/TEMPLATE/README.md">ESPnet2 TEMPLATE</a></li>
+<li><a href="https://github.com/espnet/espnet/blob/master/egs2/TEMPLATE/tts1/README.md">ESPnet2 TTS TEMPLATE</a></li>
+</ul>
+
+
+
+      
+    </article>
+    
+  </div>
+
+        </div><footer>
+  <div class="container">
+    <p class="credits copyright">
+      <p class="credits theme-by">
+        Powered By <a href="https://gohugo.io">Hugo</a>&nbsp;/&nbsp;Theme&nbsp;<a href="https://github.com/7ma7X/HugoTeX">HugoTeX</a>
+        <br>
+        <a href="https://kan-bayashi.github.io/asj-espnet2-tutorial/about">Tomoki Hayashi</a>
+        &copy;
+        2020
+      </p>
+  </div>
+</footer></body>
+</html>
