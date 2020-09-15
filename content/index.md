@@ -1,5 +1,5 @@
 ---
-date: 2020-09-14T00:00:00+09:00
+date: 2020-09-15T00:00:00+09:00
 type: "index"
 ---
 
@@ -10,7 +10,7 @@ Author: 林 知樹(Tomoki Hayashi)
 Github: [@kan-bayashi](https://github.com/kan-bayashi)
 
 > 以下の内容はESPnet v.0.9.3の内容に基づきます。  
-> バージョンの更新により、内容が大きく変化する可能があります。
+> バージョンの更新により、内容が大きく変化する可能性があります。
 
 ## 目次
 
@@ -45,8 +45,7 @@ Github: [@kan-bayashi](https://github.com/kan-bayashi)
 
 ## ESPnetとは？
 
-ESPnetとは、End-to-End(E2E)型のモデルの研究を加速させるべく開発された、E2E音声処理のためのオープンソースツールキットです。
-ライセンスはApache 2.0で、商用利用も可能です。
+ESPnetとは、End-to-End(E2E)型のモデルの研究を加速させるべく開発された、E2E音声処理のためのオープンソースツールキットです。ライセンスはApache 2.0で、商用利用も可能です。
 
 ESPnetは、E2E型モデルを記述したPythonライブラリ部と、シェルスクリプトで記述されたレシピ部で構成されています。Pythonライブラリ部は、Define-by-Run方式の[Chainer](https://github.com/chainer/chainer)及び[PyTorch](https://github.com/pytorch/pytorch)をニューラルネットワークエンジンとして利用しており、柔軟なモデルの記述・拡張を実現しています。レシピ部は、音声認識ツールキット[Kaldi](https://github.com/kaldi-asr/kald)の方式に基づいており、再現実験を行うために必要な全ての手順が一括で実行できるようになっています。
 
@@ -77,7 +76,7 @@ ESPnetは、主にUbuntuやCentOSなどのLinux環境での利用を想定して
 まず、必要なリポジトリをGithubより取得します。
 ```bash
 $ git clone https://github.com/kaldi/kaldi.git
-$ git clone https://github.com/espnet/espnet.git
+$ git clone https://github.com/espnet/espnet.git -b v.0.9.3
 ```
 
 `espnet/tools`に移動します。
@@ -128,7 +127,7 @@ ESPnet2では、研究データ共有リポジトリである[Zenodo](https://ze
 from espnet_model_zoo.downloader import ModelDownloader
 from espnet2.bin.tts_inference import Text2Speech
 
-# Create E2E-TTS model instance 
+# Create E2E-TTS model instance
 d = ModelDownloader()
 text2speech = Speech2Text(
     # Specify the tag
@@ -196,10 +195,10 @@ egs2/jsut/asr1/                    egs2/jsut/tts1/
 ```
 上記からわかるように、ASRとTTSレシピの間でディレクトリ構造は共通となっており、テンプレートスクリプトである`asr.sh`と`tts.sh`のみが異なります。
 
-ここでは、いくつかの重要なファイルについて概説します。その他のファイルに関しては、[ESPnet2 tutorail](https://espnet.github.io/espnet/espnet2_tutorial.html)を参照してください。
+ここでは、いくつかの重要なファイルについて概説します。その他のファイルに関しては、[ESPnet2 tutorial](https://espnet.github.io/espnet/espnet2_tutorial.html)を参照してください。
 
-- **`cmd.sh`**: レシピ内の各処理をどのように実行するかを設定するファイル。テンプレートスクリプトによって呼び出されます。ファイル内の`cmd_backend`を変更することで、レシピ内の各処理を[Slurm](https://www.schedmd.com/)などのジョブスケジューラを通して実行することが可能になります。デフォルトでは`cmd_backend=local`となっており、レシピを実行したローカルマシンで処理を行います。ジョブスケジューラを利用しない場合は編集せずにそのまま利用します。ジョブスケジューラとの連携の詳細に関しては、[ジョブスケジューラの利用](https://espnet.github.io/espnet/parallelization.html)を参照してください
-- **`path.sh`**: 環境変数の管理を行うファイル。テンプレートスクリプトによって呼び出される。このファイルを読み込むことで、インストールした各種ツールへのパスが通り、環境構築の際に作成したPython環境がアクティベートされる。レシピの実行の際に設定しておきたい環境変数がある場合は、このファイルに追記を行うと良い。
+- **`cmd.sh`**: レシピ内の各処理をどのように実行するかを設定するファイル。テンプレートスクリプトによって呼び出されます。ファイル内の`cmd_backend`を変更することで、レシピ内の各処理を[Slurm](https://www.schedmd.com/)などのジョブスケジューラを通して実行することが可能になります。デフォルトでは`cmd_backend=local`となっており、レシピを実行したローカルマシンで処理を行います。ジョブスケジューラを利用しない場合は編集せずにそのまま利用します。ジョブスケジューラとの連携の詳細に関しては、[ジョブスケジューラの利用](https://espnet.github.io/espnet/parallelization.html)を参照してください。
+- **`path.sh`**: 環境変数の管理を行うファイル。テンプレートスクリプトによって呼び出される。このファイルを読み込むことで、インストールした各種ツールへのパスが通り、環境構築の際に作成したPython環境がアクティベートされる。レシピの実行の際に設定しておきたい環境変数がある場合は、このファイルに追記を行うと良いです。
 - **`db.sh`**: 各種コーパスのパスを設定するファイル。主に、自動的にダウンロードを行うことができない有償のコーパスを利用したレシピを実行する際に編集する必要があります。
 - **`asr.sh`**(**`tts.sh`**): ASR(もしくはTTS)モデル構築のためのテンプレートスクリプト。モデルの構築に必要な複数のステージで構成されたシェルスクリプト。`run.sh`によって呼び出されます。
 - **`local/data.sh`**: 学習セット、検証セット、及び評価セットに対応するKaldi方式のデータディレクトリ([データディレクトリの構造](#データディレクトリの構造)を参照)を生成するシェルスクリプト。テンプレートスクリプトによって呼び出されます。レシピごとに固有のスクリプトであり、新しいレシピを追加する際には、基本的にこのスクリプトを作成することが主な作業となります。
@@ -214,14 +213,14 @@ egs2/jsut/asr1/                    egs2/jsut/tts1/
 
 各データディレクトリに含まれるファイルは以下の4つ、もしくは5つです。
 - **`wav.scp`** 音声IDと対応する音声ファイルのパスを示したファイル。下記に例を示します。
-  
+
   ```
   utt_id_1 /path/to/utt_id_1.wav
   utt_id_2 /path/to/utt_id_2.wav
   utt_id_3 /path/to/utt_id_3.wav
   ```
   各行は音声IDでソートされ、音声IDはユニークである必要があります。IDの命名規則は自由ですが、`<話者名>_<音声ファイル名>`とすることが多いです。後述の`segments`ファイルがデータディレクトリ内に存在しない場合、音声IDが発話IDとして利用されます。
-  
+
   音声ファイルのパスの部分は、任意のコマンドのパイプに置き換えることも可能です。以下に、`sox`コマンドによってサンプリングレートを変換する際の例を示します。
   ```
   utt_id_1 sox /path/to/utt_id_1.wav -t wav - rate 24000 |
@@ -229,7 +228,7 @@ egs2/jsut/asr1/                    egs2/jsut/tts1/
   utt_id_3 sox /path/to/utt_id_3.wav -t wav - rate 24000 |
   ```
   コマンドを記述した場合、このファイルを読み込む際に自動的にコマンドが実行され、その出力読み込むことが可能です。可読性は落ちますが、中間ファイルを生成したくない場合に便利な記法です。
-  
+
 - **`text`**: 発話IDとその発話IDの音声の発話内容を記したファイル。下記に例を示します。
   ```
   utt_id_1 飛ぶ自由を得ることは
@@ -237,7 +236,7 @@ egs2/jsut/asr1/                    egs2/jsut/tts1/
   utt_id_3 55歳だって嬉しいときは嬉しいのだ
   ```
   各行は発話IDでソートされている必要があります。TTSでは、入力として音素や読みを利用することが多いですが、ESPnet2では生のテキストから音素への変換は学習もしくは推論時に逐次的に行われるため、データディレクトリの準備の段階では生のテキストを利用してこのファイルを作成すれば良いです。
-  
+
 - **`utt2spk`**: 発話IDとその発話IDの音声の話者IDを記したファイル。下記に例を示します。
   ```
   utt_id_1 spk_1
@@ -245,28 +244,28 @@ egs2/jsut/asr1/                    egs2/jsut/tts1/
   utt_id_3 spk_2
   ```
   ESPnetでは基本的に話者情報を利用しないので、話者情報が存在しない場合はダミーの話者IDを利用すれば良いです(例: `utt_id_1 dummy`)。
-  
+
 - **`spk2utt`**: 話者IDとその話者の発話IDを並べたファイル。下記に例を示します。
   ```
   spk_1 utt_id_1 utt_id_2
   spk_2 utt_id_3
   ```
   このファイルは`utt2spk`ファイルから自動的に生成することが可能なので、自分で作成する必要はありません。
-  
+
 - **`segments`**(Optional): 発話ID、音声ID、開始 [sec]、終端 [sec]を記したファイル。`wav.scp`内の各発話をさらに細かく分割する場合に利用します。下記に例を示します。
   ```
   utt_id_1_000000_001000 utt_id_1 0.0 10.0
   utt_id_1_001000_001500 utt_id_1 10.0 15.0
   ```
   各行は発話IDソートされ、発話IDはユニークである必要があります。このファイルが存在する場合、`text`、`utt2spk`、そして`spk2utt`内の発話IDが、`wav.scp`の音声IDではなく、`segments`ファイルの発話IDに対応するようになります。 このため、`segments`、`text`、そして`utt2spk`の行数は必ず一致する必要があります。
-  
+
   `segments`は、非常に長い講演音声などを中間ファイルを生成することなく処理したい場合に利用することが多いです。また、TTSモデルを学習する際に、始端と終端のサイレンスを取り除きたい場合にも利用することができます。この場合、音声IDと発話IDが1対1対応となるため、発話IDと音声IDは同じものを利用することができます。
   ```
   utt_id_1 utt_id_1 1.5 4.0
   utt_id_2 utt_id_2 3.1 12.0
   utt_id_3 utt_id_3 2.1 9.0
   ```
-  
+
 
 ### ASRレシピの流れ
 
@@ -297,7 +296,7 @@ egs2/jsut/asr1/                    egs2/jsut/tts1/
 - **Stage 11**: 学習したモデルを利用してデコーディングを行うステージ。`--inference_config`及び`--inference_args`オプションに応じて、学習した言語モデルとASRモデルを用いた推論を行います。
 
 - **Stage 12**: デコードされた結果の評価を行うステージ。Character Error Rate(CER)及びWord Error Rate(WER)を算出します。
-  
+
 - **Stage 13-14(Optional)**: 学習済みのモデルのパッキング及びZenodoへのアップロードを行うステージ。利用するには、Zenodoにユーザー登録を行い、トークンを発行する必要があります。詳細に関しては[ESPnet Model Zoo](https://github.com/espnet/espnet_model_zoo)を参照してください。
 
 全ての利用可能なオプションは`asr.sh --help`で参照することができます。
@@ -347,7 +346,7 @@ Options:
     --bpe_input_sentence_size # Size of input sentence for BPE(default="100000000").
     --bpe_nlsyms              # Non-linguistic symbol list for sentencepiece, separated by a comma.(default="").
     --bpe_char_cover          # Character coverage when modeling BPE(default="1.0").
-    
+
     # Language model related
     --lm_tag          # Suffix to the result dir for language model training(default="").
     --lm_exp          # Specify the direcotry path for LM experiment.
@@ -455,7 +454,7 @@ $ ./run.sh
   │ └ valid/ # 検証セットASR統計量
   ├ asr_train_asr_rnn_raw_char/
   │ ├ att_ws/        # Attentionプロット
-  │ ├ decode_*/      # デコーディング結果  
+  │ ├ decode_*/      # デコーディング結果
   │ ├ tensorboard/   # Tensorboardログ
   │ ├ images/        # 学習曲線プロット
   │ ├ README.md      # 評価結果のサマリー
@@ -570,14 +569,14 @@ $ python3 -m espnet2.bin.asr_train --print_config --config conf/train_asr_transf
 ### TTSレシピの流れ
 
 ここでは、TTSレシピの流れについて概説します。TTSのテンプレートスクリプト(`tts.sh`)は以下の9ステージで構成されています。
-- **Stage 1**: データディレクトリを生成するステージ。ASRレシピのStage 1と同一。
-- **Stage 2**: 特徴量抽出を行うステージ。ASRレシピのStage 3と同一。
-- **Stage 3**: 発話のフィルタリングを行うステージ。 ASRレシピのStage 4と同一。
+- **Stage 1**: データディレクトリを生成するステージ。ASRレシピのStage 1と同一です。
+- **Stage 2**: 特徴量抽出を行うステージ。ASRレシピのStage 3と同一です。
+- **Stage 3**: 発話のフィルタリングを行うステージ。 ASRレシピのStage 4と同一です。
 - **Stage 4**: トークンリスト(辞書)を作成するステージ。`--token_type`オプションに応じて、利用するトークンのタイプが異なります。TTSでは`token_type=char`もしくは`token_type=phn`が利用可能です。`token_type=phn`の場合、`--g2p`オプションで指定されたGrapheme to Phoneme(G2P)モジュールによって音素へと変換されます。日本語の場合、`g2p=pyopenjtalk`を指定することで[OpenJTalk](http://open-jtalk.sp.nitech.ac.jp/)のテキストフロントエンド部を利用した音素への変換を行うことができます。また、`--cleaner`オプションでテキストのクリーニングを行うモジュールを指定することもできます。
 - **Stage 5**: TTSモデル学習のための統計量を計算するステージ。動的にバッチサイズを変更するためのデータのシェイプ情報(系列長及び次元数)と、学習データ全体での音響特徴量の統計量(平均及び分散)を計算します。
 - **Stage 6**: TTSモデルの学習を行うステージ。`--train_config`及び`--train_args`オプションに応じてTTSモデルの学習を行います。
 - **Stage 7**: 学習したTTSモデルを利用してデコーディングを行うステージ。`--inference_config`及び`--inference_args`オプションに応じて推論を行います。
-- **Stage 8-9(Optional)**: 学習済みのモデルのパッキング及びZenodoへのアップロードを行うステージ。ASRのStage 13-14と同一。
+- **Stage 8-9(Optional)**: 学習済みのモデルのパッキング及びZenodoへのアップロードを行うステージ。ASRのStage 13-14と同一です。
 
 全ての利用可能なオプションは`tts.sh --help`で参照することができます。
 ```bash
@@ -741,7 +740,7 @@ $ ./run.sh --stage 2 --stop-stage 2
 
 ユーザーは、生成された特徴量ファイルを利用することで、任意のニューラルボコーダと組み合わせることが可能できます。より詳細に関しては、[ParallelWaveGAN](https://github.com/kan-bayashi/ParallelWaveGAN)を参照してください。
 
-また、生成時のAttention(`att_ws/*.png`)や生成打ち切り確率のプロット(`probs/*.png`)を観察することで、生成がうまく行っているかを分析が可能です。以下に二つのプロットの例を示します。
+また、生成時のAttention(`att_ws/*.png`)や生成打ち切り確率のプロット(`probs/*.png`)を観察することで、生成がうまく行っているかを分析できます。以下に二つのプロットの例を示します。
 
 <div align="center">
 <img src=figs/tts_attention_ex.png width=75%>
@@ -783,7 +782,7 @@ $ ./run.sh --stage 7 \
 ```bash
 $ ./run.sh --stage 6 \
   --teacher_dumpdir exp/<teacher_model_dir>/decode_train.loss.ave \
-  --train_config conf/tuning/train_fastspeech.yaml 
+  --train_config conf/tuning/train_fastspeech.yaml
 ```
 以上で、FastSpeechの学習は完了となります。
 
@@ -823,7 +822,7 @@ ESPnetは日本人が中心となって開発を進めており、常に熱意�
 ## 参考リンク
 
 - [ESPnet](https://github.com/espnet/espnet)
-- [ESPnet modle zoo](https://github.com/espnet/espnet_model_zoo)
+- [ESPnet model zoo](https://github.com/espnet/espnet_model_zoo)
 - [ESPnet document](https://espnet.github.io/espnet/)
 - [ESPnet2 tutorial](https://espnet.github.io/espnet/espnet2_tutorial.html)
 - [ESPnet2 TEMPLATE](https://github.com/espnet/espnet/blob/master/egs2/TEMPLATE/README.md)
