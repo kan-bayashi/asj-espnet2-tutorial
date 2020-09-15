@@ -51,7 +51,7 @@ ESPnetは、E2E型モデルを記述したPythonライブラリ部と、シェ�
 
 ## ESPnet2とは？
 
-ESPnet2は、ESPnetの弱点を克服するべく開発された次世代の音声処理ツールキットです。基本的な構成はESPnetと同様ですが、利便性と拡張性を高めるため以下のような拡張が行われています。
+ESPnet2は、ESPnetの弱点を克服するべく開発された次世代の音声処理ツールキットです。コード自体はESPnetのリポジトリに統合されています。基本的な構成はESPnetと同様ですが、利便性と拡張性を高めるため以下のような拡張が行われています。
 
 - **Task-Design**: [FairSeq](https://github.com/pytorch/fairseq)の方式を参考に、ユーザーが任意の新しい音声処理タスク(例: 音声強調、音声変換)を定義できるように。
 - **Chainer-Free**: [Chainer](https://github.com/chainer/chainer)の開発終了に伴い、[Chainer](https://github.com/chainer/chainer)に依存していた部分を改修。
@@ -131,7 +131,7 @@ from espnet2.bin.tts_inference import Text2Speech
 d = ModelDownloader()
 text2speech = Speech2Text(
     # Specify the tag
-    d.download_and_unpack("kan-bayashi/jsut_fastspeech2)
+    d.download_and_unpack("kan-bayashi/jsut_fastspeech2")
 )
 
 # Synthesis with a given text
