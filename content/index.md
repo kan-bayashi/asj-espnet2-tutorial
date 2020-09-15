@@ -770,7 +770,7 @@ $ python3 -m espnet2.bin.tts_train --print_config --config conf/train.yaml
 
 #### 非自己回帰型モデルの学習
 
-TTSレシピでは、自己回帰モデルだけでなく、非自己回帰モデル([FastSpeech](https://arxiv.org/abs/1905.09263)、[FastSpeech2](https://arxiv.org/abs/2006.04558))の学習もサポートされています。非自己回帰モデルの学習には、教師モデルから生成される入力トークンの継続長情報が必要となるため、学習済みの教師モデルを利用した追加の手順が必要となります。
+TTSレシピでは、自己回帰モデル([Tacotron2](https://arxiv.org/abs/1712.05884)、[Transformer-TTS](https://arxiv.org/abs/1809.08895))だけでなく、非自己回帰モデル([FastSpeech](https://arxiv.org/abs/1905.09263)、[FastSpeech2](https://arxiv.org/abs/2006.04558))の学習もサポートされています。非自己回帰モデルの学習には、教師モデルから生成される入力トークンの継続長情報が必要となるため、学習済みの教師モデルを利用した追加の手順が必要となります。
 
 まず、知識蒸留を利用したFastSpeechの学習手順を示します。知識蒸留を利用した学習の場合、FastSpeechのターゲットとなる音響特徴量は教師モデルが生成した音響特徴量となり、Groundtruthの音響特徴量は利用しません。このため、`--tts_exp`オプションで学習済みモデルのディレクトリを指定し、学習データを含む全データをデコードします。
 ```bash
