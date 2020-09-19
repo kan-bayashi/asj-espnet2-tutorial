@@ -151,7 +151,7 @@ wav, feats, feats_denorm, *_ = text2speech(
 <audio controls="" ><source src="audios/zh_sample.wav"/></audio>
 </div>
 
-ASRモデルの推論ついても、ほぼ同一の手順で実行が可能です。以下では、[Librispeechコーパス](http://www.openslr.org/12)で学習されたASRモデル[Joint CTC-Attention Transformer](https://arxiv.org/abs/1909.06317)を利用した推論を実行するPythonコードの例を示します。
+ASRモデルの推論についても、ほぼ同一の手順で実行が可能です。以下では、[Librispeechコーパス](http://www.openslr.org/12)で学習されたASRモデル[Joint CTC-Attention Transformer](https://arxiv.org/abs/1909.06317)を利用した推論を実行するPythonコードの例を示します。
 ```python
 import soundfile as sf
 from espnet_model_zoo.downloader import ModelDownloader
@@ -277,7 +277,7 @@ egs2/jsut/asr1/                    egs2/jsut/tts1/
 
 - **Stage 2(Optional)**: 話速変化に基づくデータ拡張を実施するステージ。`--speed_purturb_factors`オプションを指定した場合のみ実行されます。Stage 1で作成された学習セットのデータディレクトリ内の`wav.scp`を`sox`コマンドを用いて拡張します。
 
-- **Stage 3**: 特徴量抽出を行うステージ。`--feats_type`オプションに応じてによって処理が異ります。デフォルトは`feats_type=raw`であり、特徴量抽出の代わりに`wav.scp`の整形のみが行われます。`feats_type=raw`以外を利用する場合は、Kaldiの特徴量抽出を利用します。この場合、Kaldiのコンパイルが必要となります。
+- **Stage 3**: 特徴量抽出を行うステージ。`--feats_type`オプションに応じて処理が異なります。デフォルトは`feats_type=raw`であり、特徴量抽出の代わりに`wav.scp`の整形のみが行われます。`feats_type=raw`以外を利用する場合は、Kaldiの特徴量抽出を利用します。この場合、Kaldiのコンパイルが必要となります。
 
 - **Stage 4**: 発話のフィルタリングを行うステージ。学習セットと検証セットの中の最短しきい値以下の発話と最長しきい値以上の長さの発話を取り除きます。最短及び最長しきい値は`--min_wav_duration`及び`--max_wav_duration`オプションでそれぞれ指定することができます。
 
