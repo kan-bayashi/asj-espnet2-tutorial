@@ -86,7 +86,7 @@ $ cd espnet/tools
 
 Kaldiへのシンボリックリンクを作成します。この際、Kaldiはコンパイルする必要はありません。
 ```bash
-$ ls -s $(pwd)/../../kaldi .
+$ ln -s $(pwd)/../../kaldi .
 ```
 
 CUDAに関する環境変数を設定します。
