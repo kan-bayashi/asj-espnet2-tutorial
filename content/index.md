@@ -55,7 +55,7 @@ ESPnet2は、ESPnetの弱点を克服するべく開発された次世代の音�
 
 - **Task-Design**: [FairSeq](https://github.com/pytorch/fairseq)の方式を参考に、ユーザーが任意の新しい音声処理タスク(例: 音声強調、音声変換)を定義できるように。
 - **Chainer-Free**: [Chainer](https://github.com/chainer/chainer)の開発終了に伴い、[Chainer](https://github.com/chainer/chainer)に依存していた部分を改修。
-- **Kaldi-Free**: [Kaldi](https://github.com/kaldi-asr/kald)に依存していた特徴量抽出部がPythonライブラリ内に統合。これにより、多くのユーザーが躓きやすいKaldiのコンパイルが不要に。
+- **Kaldi-Free**: [Kaldi](https://github.com/kaldi-asr/kaldi)に依存していた特徴量抽出部がPythonライブラリ内に統合。これにより、多くのユーザーが躓きやすいKaldiのコンパイルが不要に。
 - **On-the-Fly**: 特徴量抽出やテキストの前処理などがモデル部に統合。学習時や推論時に逐次的に実行されるように。
 - **Scalable**: CPUメモリの利用の最適化を行い、数万時間オーダーの超巨大データセットを用いた学習が可能に。さらに、マルチノードマルチGPU方式の分散学習をサポート。
 
@@ -75,7 +75,7 @@ ESPnetは、主にUbuntuやCentOSなどのLinux環境での利用を想定して
 
 まず、必要なリポジトリをGithubより取得します。
 ```bash
-$ git clone https://github.com/kaldi/kaldi.git
+$ git clone https://github.com/kaldi-asr/kaldi.git
 $ git clone https://github.com/espnet/espnet.git -b v.0.9.3
 ```
 
