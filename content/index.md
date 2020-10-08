@@ -9,7 +9,7 @@ Author: 林 知樹(Tomoki Hayashi)
 
 Github: [@kan-bayashi](https://github.com/kan-bayashi)
 
-> 以下の内容はESPnet v.0.9.3の内容に基づきます。  
+> 以下の内容はESPnet v.0.9.4の内容に基づきます。  
 > バージョンの更新により、内容が大きく変化する可能性があります。
 
 ## 目次
@@ -59,7 +59,7 @@ ESPnet2は、ESPnetの弱点を克服するべく開発された次世代の音�
 - **On-the-Fly**: 特徴量抽出やテキストの前処理などがモデル部に統合。学習時や推論時に逐次的に実行されるように。
 - **Scalable**: CPUメモリの利用の最適化を行い、数万時間オーダーの超巨大データセットを用いた学習が可能に。さらに、マルチノードマルチGPU方式の分散学習をサポート。
 
-2020年10月時点の最新バージョンv.0.9.3では、音声認識(ASR)、テキスト音声合成(TTS)、そして、音声強調(SE)のタスクがサポートされています。今後は、さらなるタスク(例: 音声翻訳、音声変換)が[サポートされる予定](https://github.com/espnet/espnet/issues/1795)です。以下では、ASRとTTSを中心に、その使い方を簡単に解説します。
+2020年10月時点の最新バージョンv.0.9.4では、音声認識(ASR)、テキスト音声合成(TTS)、そして、音声強調(SE)のタスクがサポートされています。今後は、さらなるタスク(例: 音声翻訳、音声変換)が[サポートされる予定](https://github.com/espnet/espnet/issues/1795)です。以下では、ASRとTTSを中心に、その使い方を簡単に解説します。
 
 ## 環境構築
 
@@ -76,7 +76,7 @@ ESPnetは、主にUbuntuやCentOSなどのLinux環境での利用を想定して
 まず、必要なリポジトリをGithubより取得します。
 ```bash
 $ git clone https://github.com/kaldi-asr/kaldi.git
-$ git clone https://github.com/espnet/espnet.git -b v.0.9.3
+$ git clone https://github.com/espnet/espnet.git -b v.0.9.4
 ```
 
 `espnet/tools`に移動します。
